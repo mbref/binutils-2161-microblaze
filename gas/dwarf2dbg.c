@@ -1369,9 +1369,8 @@ dwarf2_finish (void)
   info_seg = bfd_get_section_by_name (stdoutput, ".debug_info");
   emit_other_sections = info_seg == NULL || !seg_not_empty_p (info_seg);
 
-  if (!all_segs && emit_other_sections)
-    /* There is no line information and no non-empty .debug_info
-       section.  */
+  if (!all_segs)
+    /* There is no line information. */
     return;
 
   /* Calculate the size of an address for the target machine.  */
