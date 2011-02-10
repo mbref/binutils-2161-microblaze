@@ -1331,9 +1331,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 	   else
 	    sym_sec = bfd_section_from_elf_index (abfd, isym->st_shndx);
 
-	   symval = (isym->st_value
-		     + sym_sec->output_section->vma
-		     + sym_sec->output_offset);
+	   symval = _bfd_elf_rela_local_sym (abfd, isym, &sym_sec, irel);
 	 }
        else
 	 {
