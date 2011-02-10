@@ -2326,11 +2326,13 @@ md_apply_fix3 (fixS *   fixP,
   
       inst1 = opcode1->bit_sequence;
 
-      /* We can fixup call to a defined non-global address only. */
+      /* We can fixup call to a defined non-global address 
+         within the same section only. */
       if (fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64_PLT
           && (fixP->fx_addsy == NULL
               || (S_IS_DEFINED (fixP->fx_addsy)
-                  && !S_IS_EXTERN(fixP->fx_addsy)))) {
+                  && !S_IS_EXTERN(fixP->fx_addsy)))
+          && (S_GET_SEGMENT (fixP->fx_addsy) == segment)) {
          inst1 |= ((val & 0xFFFF0000) >> 16) & IMM_MASK;
          buf[6] |= ((val >> 8) & 0xff);
          buf[7] |= (val & 0xff);

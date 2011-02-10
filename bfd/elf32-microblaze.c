@@ -801,6 +801,18 @@ microblaze_elf_relocate_section (bfd *output_bfd,
                bfd_put_16 (input_bfd, (immediate >> 16) & 0xffff, contents + offset + 2);
                bfd_put_16 (input_bfd, immediate & 0xffff, contents + offset + 2 + INST_WORD_SIZE);
            }
+           else
+           {
+               /* fprintf(stderr,
+                       "microblaze_elf_relocate_section: PLT64 relocation with no PLT entry (relocation = %08x)\n",
+                       relocation); */
+               relocation -= (input_section->output_section->vma
+                              + input_section->output_offset
+                              + offset + INST_WORD_SIZE);
+               immediate = relocation;
+               bfd_put_16 (input_bfd, (immediate >> 16) & 0xffff, contents + offset + 2);
+               bfd_put_16 (input_bfd, immediate & 0xffff, contents + offset + 2 + INST_WORD_SIZE);
+           }
            break;
         }
 
