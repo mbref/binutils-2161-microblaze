@@ -47,6 +47,7 @@
 #define ARCH_m88k
 #define ARCH_maxq
 #define ARCH_mcore
+#define ARCH_microblaze
 #define ARCH_mips
 #define ARCH_mmix
 #define ARCH_mn10200
@@ -231,6 +232,11 @@ disassembler (abfd)
 #ifdef ARCH_maxq
     case bfd_arch_maxq:
       disassemble = print_insn_maxq_little;
+      break;
+#endif
+#ifdef ARCH_microblaze
+    case bfd_arch_microblaze:
+      disassemble = print_insn_microblaze;
       break;
 #endif
 #ifdef ARCH_msp430

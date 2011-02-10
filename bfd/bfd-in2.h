@@ -1803,6 +1803,7 @@ enum bfd_architecture
    bfd_arch_maxq,     /* Dallas MAXQ 10/20 */
 #define bfd_mach_maxq10    10
 #define bfd_mach_maxq20    20
+  bfd_arch_microblaze,
   bfd_arch_last
   };
 
@@ -3752,6 +3753,32 @@ assembler-expanded instructions.  This is commonly used
 internally by the linker after analysis of a 
 BFD_RELOC_XTENSA_ASM_EXPAND.  */
   BFD_RELOC_XTENSA_ASM_SIMPLIFY,
+
+/* Xilinx MicroBlaze relocations. */
+/* This is a 32 bit reloc stores the low 16 bits of a value */
+  BFD_RELOC_MICROBLAZE_32_LO,
+
+/* This is a 32 bit pc-relative reloc that stores the low 
+16 bits of a value */
+  BFD_RELOC_MICROBLAZE_32_LO_PCREL,
+
+/* This is a 32 bit reloc that stores a value relative 
+to the read-only small data area anchor */
+  BFD_RELOC_MICROBLAZE_32_ROSDA,
+
+/* This is a 32 bit reloc that stores a value relative to the 
+read-write small data area anchor */
+  BFD_RELOC_MICROBLAZE_32_RWSDA,
+
+/* This is a 32 bit reloc to handle expressions of the form 
+"Symbol Op Symbol" */
+  BFD_RELOC_MICROBLAZE_32_SYM_OP_SYM,
+  
+/* This is a 64 bit reloc that stores the 32 bit pc relative 
+value in two words (with an imm instruction).  No relocation is 
+done here - only used for relaxing */
+  BFD_RELOC_MICROBLAZE_64_NONE,
+
   BFD_RELOC_UNUSED };
 typedef enum bfd_reloc_code_real bfd_reloc_code_real_type;
 reloc_howto_type *bfd_reloc_type_lookup

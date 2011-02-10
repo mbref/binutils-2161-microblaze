@@ -85,6 +85,7 @@ ALL_MACHINES = \
 	cpu-m10300.lo \
 	cpu-maxq.lo \
 	cpu-mcore.lo \
+	cpu-microblaze.lo \
 	cpu-mips.lo \
 	cpu-mmix.lo \
 	cpu-msp430.lo \
@@ -143,6 +144,7 @@ ALL_MACHINES_CFILES = \
 	cpu-m10300.c \
 	cpu-maxq.c \
 	cpu-mcore.c \
+	cpu-microblaze.c \
 	cpu-mips.c \
 	cpu-mmix.c \
 	cpu-msp430.c \
@@ -251,6 +253,7 @@ BFD32_BACKENDS = \
 	elf32-mcore.lo \
 	elfxx-mips.lo \
 	elf32-mips.lo \
+	elf32-microblaze.lo \
 	elf32-msp430.lo \
 	elf32-openrisc.lo \
 	elf32-or32.lo \
@@ -419,6 +422,7 @@ BFD32_BACKENDS_CFILES = \
 	elf32-mcore.c \
 	elfxx-mips.c \
 	elf32-mips.c \
+	elf32-microblaze.c \
 	elf32-msp430.c \
 	elf32-openrisc.c \
 	elf32-or32.c \
@@ -973,6 +977,7 @@ cpu-m10300.lo: cpu-m10300.c $(INCDIR)/filenames.h
 cpu-maxq.lo: cpu-maxq.c $(INCDIR)/filenames.h
 cpu-mcore.lo: cpu-mcore.c $(INCDIR)/filenames.h
 cpu-mips.lo: cpu-mips.c $(INCDIR)/filenames.h
+cpu-microblaze.lo: cpu-microblaze.c $(INCDIR)/filenames.h
 cpu-mmix.lo: cpu-mmix.c $(INCDIR)/filenames.h
 cpu-msp430.lo: cpu-msp430.c $(INCDIR)/filenames.h
 cpu-or32.lo: cpu-or32.c $(INCDIR)/filenames.h
@@ -1273,6 +1278,12 @@ elf32-mcore.lo: elf32-mcore.c $(INCDIR)/filenames.h \
   $(INCDIR)/bfdlink.h elf-bfd.h $(INCDIR)/elf/common.h \
   $(INCDIR)/elf/internal.h $(INCDIR)/elf/external.h $(INCDIR)/elf/mcore.h \
   $(INCDIR)/elf/reloc-macros.h elf32-target.h
+elf32-microblaze.lo: elf32-microblaze.c $(INCDIR)/filenames.h \
+  $(INCDIR)/bfdlink.h genlink.h elf-bfd.h $(INCDIR)/elf/common.h \
+  $(INCDIR)/elf/internal.h $(INCDIR)/elf/external.h elfxx-mips.h \
+  $(INCDIR)/elf/mips.h $(INCDIR)/elf/reloc-macros.h $(INCDIR)/coff/sym.h \
+  $(INCDIR)/coff/symconst.h $(INCDIR)/coff/internal.h $(INCDIR)/coff/ecoff.h \
+  $(INCDIR)/coff/mips.h $(INCDIR)/coff/external.h ecoffswap.h elf32-target.h
 elfxx-mips.lo: elfxx-mips.c $(INCDIR)/filenames.h $(INCDIR)/libiberty.h \
   elf-bfd.h $(INCDIR)/elf/common.h $(INCDIR)/elf/internal.h \
   $(INCDIR)/elf/external.h $(INCDIR)/bfdlink.h elfxx-mips.h \

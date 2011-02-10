@@ -66,6 +66,7 @@ CPU_TYPES = \
 	m68k \
 	m88k \
 	mcore \
+	microblaze \
 	mips \
 	mmix \
 	mn10200 \
@@ -264,6 +265,7 @@ TARGET_CPU_CFILES = \
 	config/tc-m68k.c \
 	config/tc-m88k.c \
 	config/tc-mcore.c \
+	config/tc-microblaze.c \
 	config/tc-mips.c \
 	config/tc-mmix.c \
 	config/tc-mn10200.c \
@@ -317,6 +319,7 @@ TARGET_CPU_HFILES = \
 	config/tc-m68k.h \
 	config/tc-m88k.h \
 	config/tc-mcore.h \
+	config/tc-microblaze.h \
 	config/tc-mips.h \
 	config/tc-mmix.h \
 	config/tc-mn10200.h \
@@ -1283,6 +1286,11 @@ DEPTC_mcore_elf = $(INCDIR)/symcat.h $(srcdir)/config/obj-elf.h \
   $(INCDIR)/elf/external.h $(INCDIR)/bfdlink.h $(srcdir)/config/tc-mcore.h \
   subsegs.h $(INCDIR)/obstack.h $(srcdir)/../opcodes/mcore-opc.h \
   $(INCDIR)/safe-ctype.h $(INCDIR)/elf/mcore.h $(INCDIR)/elf/reloc-macros.h
+DEPTC_microblaze_elf = $(INCDIR)/bin-bugs.h $(srcdir)/config/obj-elf.h \
+  $(BFDDIR)/elf-bfd.h $(INCDIR)/elf/common.h $(INCDIR)/elf/internal.h \
+  $(INCDIR)/elf/external.h $(INCDIR)/bfdlink.h $(srcdir)/config/tc-microblaze.h \
+  emul.h subsegs.h $(INCDIR)/obstack.h $(srcdir)/../opcodes/microblaze-opc.h \
+  $(INCDIR)/elf/reloc-macros.h
 DEPTC_mips_coff = $(INCDIR)/symcat.h $(srcdir)/config/obj-coff.h \
   $(srcdir)/config/tc-mips.h $(INCDIR)/coff/internal.h \
   $(INCDIR)/coff/mipspe.h $(INCDIR)/coff/external.h $(BFDDIR)/libcoff.h \
@@ -2268,6 +2276,9 @@ DEP_mcore_coff = $(srcdir)/config/obj-coff.h $(srcdir)/config/tc-mcore.h \
 DEP_mcore_elf = $(srcdir)/config/obj-elf.h $(INCDIR)/symcat.h \
   $(BFDDIR)/elf-bfd.h $(INCDIR)/elf/common.h $(INCDIR)/elf/internal.h \
   $(INCDIR)/elf/external.h $(INCDIR)/bfdlink.h $(srcdir)/config/tc-mcore.h
+DEP_microblaze_elf = $(srcdir)/config/obj-elf.h $(BFDDIR)/elf-bfd.h \
+  $(INCDIR)/elf/common.h $(INCDIR)/elf/internal.h $(INCDIR)/elf/external.h \
+  $(INCDIR)/bfdlink.h $(srcdir)/config/tc-microblaze.h
 DEP_mips_coff = $(srcdir)/config/obj-coff.h $(srcdir)/config/tc-mips.h \
   $(INCDIR)/symcat.h $(INCDIR)/coff/internal.h $(INCDIR)/coff/mipspe.h \
   $(INCDIR)/coff/external.h $(BFDDIR)/libcoff.h $(INCDIR)/bfdlink.h

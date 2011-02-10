@@ -90,6 +90,7 @@
 #include "elf/m68k.h"
 #include "elf/m68hc11.h"
 #include "elf/mcore.h"
+#include "elf/microblaze.h"
 #include "elf/mips.h"
 #include "elf/mmix.h"
 #include "elf/mn10200.h"
@@ -1232,6 +1233,11 @@ dump_relocations (FILE *file,
 	case EM_XTENSA:
 	  rtype = elf_xtensa_reloc_type (type);
 	  break;
+	
+	case EM_MICROBLAZE:
+	case EM_NEW_MICROBLAZE:
+	  rtype = elf_microblaze_reloc_type (type);
+	  break;
 	}
 
       if (rtype == NULL)
@@ -1720,6 +1726,7 @@ get_machine_name (unsigned e_machine)
     case EM_IQ2000:       	return "Vitesse IQ2000";
     case EM_XTENSA_OLD:
     case EM_XTENSA:		return "Tensilica Xtensa Processor";
+    case EM_MICROBLAZE:		return "Xilinx MicroBlaze";
     default:
       snprintf (buff, sizeof (buff), _("<unknown>: %x"), e_machine);
       return buff;

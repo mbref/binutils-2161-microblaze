@@ -1493,6 +1493,9 @@ case "${target}" in
   mips*-*-irix5*)
     noconfigdirs="$noconfigdirs gprof target-libgloss ${libgcj}"
     ;;
+  microblaze*)
+    noconfigdirs="$noconfigdirs ${libgcj}"
+    ;;
   mips*-*-irix6*)
     # Linking libjava exceeds command-line length limits on at least
     # IRIX 6.2, but not on IRIX 6.5.

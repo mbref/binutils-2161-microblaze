@@ -174,6 +174,7 @@ ALL_EMULATIONS = \
 	eelf32lppcnto.o \
 	eelf32lppcsim.o \
 	eelf32mcore.o \
+	eelf32microblaze.o \
 	eelf32mipswindiss.o \
 	eelf32openrisc.o \
 	eelf32ppc.o \
@@ -639,6 +640,9 @@ eelf32frv.c: $(srcdir)/emulparams/elf32frv.sh \
 eelf32mcore.c: $(srcdir)/emulparams/elf32mcore.sh \
   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} elf32mcore "$(tdir_mcore)"
+eelf32microblaze.c: $(srcdir)/emulparams/elf32microblaze.sh \
+  $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elfmicroblaze.sc ${GEN_DEPENDS}
+	${GENSCRIPTS} elf32microblaze "$(tdir_microblaze)"
 em32relf.c: $(srcdir)/emulparams/m32relf.sh \
   $(srcdir)/emultempl/elf32.em $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
 	${GENSCRIPTS} m32relf "$(tdir_m32r)"

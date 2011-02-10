@@ -34,6 +34,7 @@ HFILES = \
 	iq2000-desc.h iq2000-opc.h \
 	m32r-desc.h m32r-opc.h \
 	mcore-opc.h \
+	microblaze-opc.h \
 	openrisc-desc.h openrisc-opc.h \
 	sh-opc.h \
 	sh64-opc.h \
@@ -119,6 +120,7 @@ CFILES = \
 	maxq-dis.c \
 	mcore-dis.c \
 	mips-dis.c \
+	microblaze-dis.c \
 	mips-opc.c \
 	mips16-opc.c \
 	m10200-dis.c \
@@ -237,6 +239,7 @@ ALL_MACHINES = \
 	maxq-dis.lo \
 	mcore-dis.lo \
 	mips-dis.lo \
+	microblaze-dis.lo \
 	mips-opc.lo \
 	mips16-opc.lo \
 	mmix-dis.lo \
@@ -723,6 +726,8 @@ maxq-dis.lo: maxq-dis.c sysdep.h config.h $(INCDIR)/ansidecl.h \
   $(INCDIR)/dis-asm.h $(BFD_H) $(INCDIR)/symcat.h $(INCDIR)/opcode/maxq.h
 mcore-dis.lo: mcore-dis.c sysdep.h config.h $(INCDIR)/ansidecl.h \
   mcore-opc.h $(INCDIR)/dis-asm.h $(BFD_H) $(INCDIR)/symcat.h
+microblaze-dis.lo: microblaze-dis.c microblaze-opc.h $(INCDIR)/ansidecl.h \
+  $(INCDIR)/dis-asm.h $(BFD_H)
 mips-dis.lo: mips-dis.c sysdep.h config.h $(INCDIR)/ansidecl.h \
   $(INCDIR)/dis-asm.h $(BFD_H) $(INCDIR)/symcat.h $(INCDIR)/libiberty.h \
   $(INCDIR)/opcode/mips.h opintl.h $(BFDDIR)/elf-bfd.h \

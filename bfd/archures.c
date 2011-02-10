@@ -358,6 +358,7 @@ DESCRIPTION
 .   bfd_arch_maxq,     {* Dallas MAXQ 10/20 *}
 .#define bfd_mach_maxq10    10
 .#define bfd_mach_maxq20    20
+   bfd_arch_microblaze,
 .  bfd_arch_last
 .  };
 */
@@ -427,6 +428,7 @@ extern const bfd_arch_info_type bfd_m88k_arch;
 extern const bfd_arch_info_type bfd_maxq_arch;
 extern const bfd_arch_info_type bfd_mcore_arch;
 extern const bfd_arch_info_type bfd_mips_arch;
+extern const bfd_arch_info_type bfd_microblaze_arch;
 extern const bfd_arch_info_type bfd_mmix_arch;
 extern const bfd_arch_info_type bfd_mn10200_arch;
 extern const bfd_arch_info_type bfd_mn10300_arch;
@@ -489,6 +491,7 @@ static const bfd_arch_info_type * const bfd_archures_list[] =
     &bfd_m88k_arch,
     &bfd_maxq_arch,
     &bfd_mcore_arch,
+    &bfd_microblaze_arch,
     &bfd_mips_arch,
     &bfd_mmix_arch,
     &bfd_mn10200_arch,
