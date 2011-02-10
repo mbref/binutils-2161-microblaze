@@ -300,7 +300,7 @@ SUBSUBSECTION
 */
 
 /* The default number of entries to use when creating a hash table.  */
-#define DEFAULT_SIZE 4051
+#define DEFAULT_SIZE 32749
 static size_t bfd_default_hash_table_size = DEFAULT_SIZE;
 
 /* Create a new hash table, given a number of entries.  */
