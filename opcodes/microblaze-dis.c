@@ -55,7 +55,6 @@ static char * get_field_imm (long instr);
 static char * get_field_imm5 (long instr);
 static char * get_field_rfsl (long instr);
 static char * get_field_imm15 (long instr);
-static char * get_field_unsigned_imm (long instr);
 char * get_field_special (long instr, struct op_code_struct * op);
 unsigned long read_insn_microblaze (bfd_vma memaddr, 
 		      struct disassemble_info *info,
@@ -117,14 +116,6 @@ get_field_imm15 (long instr)
 {
   char tmpstr[25];
   sprintf(tmpstr, "%d", (short)((instr & IMM15_MASK) >> IMM_LOW));
-  return(strdup(tmpstr));
-}
-
-static char *
-get_field_unsigned_imm (long instr)
-{
-  char tmpstr[25];
-  sprintf(tmpstr, "%d", (int)((instr & IMM_MASK) >> IMM_LOW));
   return(strdup(tmpstr));
 }
 
@@ -397,8 +388,8 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
   case INST_TYPE_R1:
      fprintf(stream, "\t%s", get_field_r1(inst));
      break;
-  case INST_TYPE_RD_R1_SPECIAL:
-     fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_r2(inst));
+  case INST_TYPE_R1_R2_SPECIAL:
+     fprintf(stream, "\t%s, %s", get_field_r1(inst), get_field_r2(inst));
      break;
   case INST_TYPE_RD_IMM15:
      fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_imm15(inst));

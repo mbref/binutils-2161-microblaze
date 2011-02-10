@@ -403,9 +403,22 @@ vax-*-netbsdaout* | vax-*-netbsd*)
 			targ_emul=vaxnbsd
 			targ_extra_emuls=elf32vax ;;
 vax-*-linux-gnu*)	targ_emul=elf32vax ;;
+microblazeel*-linux*)
+			targ_emul=elf32mbel_linux
+			targ_extra_emuls="elf32microblaze elf32mb_linux"
+			;;
 microblaze*-linux*)
-			targ_emul="elf32mb_linux" ;;
-microblaze*)		targ_emul=elf32microblaze ;;
+			targ_emul=elf32mb_linux
+			targ_extra_emuls="elf32microblazeel elf32mbel_linux"
+			;;
+microblazeel*)
+			targ_emul=elf32microblazeel
+			targ_extra_emuls="elf32microblaze"
+			;;
+microblaze*)
+			targ_emul=elf32microblaze
+			targ_extra_emuls="elf32microblazeel"
+			;;
 mips*-*-pe)		targ_emul=mipspe ;
 			targ_extra_ofiles="deffilep.o pe-dll.o" ;;
 mips*-dec-ultrix*)	targ_emul=mipslit ;;

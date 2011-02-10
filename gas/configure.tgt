@@ -51,7 +51,9 @@ case ${cpu} in
   m5200)		cpu_type=m68k ;;
   m8*)			cpu_type=m88k ;;
   maxq)			cpu_type=maxq ;;
-  microblaze*)		cpu_type=microblaze ;;
+  microblazeel*)	cpu_type=microblaze endian=little;;
+  microblazeeb*)	cpu_type=microblaze endian=big;;
+  microblaze*)		cpu_type=microblaze endian=big;;
   mips*el)		cpu_type=mips endian=little ;;
   mips*)		cpu_type=mips endian=big ;;
   or32*)		cpu_type=or32 endian=big ;;

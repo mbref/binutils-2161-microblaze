@@ -52,6 +52,9 @@
 #define streq(a,b) (strcmp (a, b) == 0)
 #endif
 
+#define OPTION_EB (OPTION_MD_BASE + 0)
+#define OPTION_EL (OPTION_MD_BASE + 1)
+
 static char * parse_reg    PARAMS ((char *, unsigned *));
 static char * parse_exp    PARAMS ((char *, expressionS *));
 static char * parse_imm   PARAMS ((char *, expressionS *, int, int));
@@ -1548,15 +1551,15 @@ md_assemble (char * str)
       output = frag_more (isize);
       break;
       
-   case INST_TYPE_RD_R1_SPECIAL:
+   case INST_TYPE_R1_R2_SPECIAL:
       if (strcmp(op_end, ""))
-         op_end = parse_reg(op_end + 1, &reg1);  /* get rd */
+         op_end = parse_reg(op_end + 1, &reg1);  /* get r1 */
       else {
          as_fatal(_("Error in statement syntax"));
          reg1 = 0;
       }
       if (strcmp(op_end, ""))
-         op_end = parse_reg(op_end + 1, &reg2);  /* get r1 */
+         op_end = parse_reg(op_end + 1, &reg2);  /* get r2 */
       else {
          as_fatal(_("Error in statement syntax"));
          reg2 =0;
@@ -1570,7 +1573,6 @@ md_assemble (char * str)
       
       
       /* insn wic ra, rb => wic ra, ra, rb */
-      inst |= (reg1 << RD_LOW) & RD_MASK;
       inst |= (reg1 << RA_LOW) & RA_MASK;
       inst |= (reg2 << RB_LOW) & RB_MASK;
       
@@ -1922,6 +1924,12 @@ CONST char * md_shortopts = "";
 
 struct option md_longopts[] =
 {
+#ifdef OPTION_EB
+  {"EB", no_argument, NULL, OPTION_EB},
+#endif
+#ifdef OPTION_EL
+  {"EL", no_argument, NULL, OPTION_EL},
+#endif
    { NULL,          no_argument, NULL, 0}
 };
 
@@ -2430,32 +2438,10 @@ md_estimate_size_before_relax (register fragS * fragP,
 void
 md_number_to_chars (char * ptr, valueT use, int nbytes)
 {
-   if (! target_big_endian)
-      switch (nbytes)
-      {
-      case 8: ptr[7] = (use >> 56) & 0xff;
-              ptr[6] = (use >> 48) & 0xff;
-              ptr[5] = (use >> 40) & 0xff;
-              ptr[4] = (use >> 32) & 0xff; /* fall through */
-      case 4: ptr[3] = (use >> 24) & 0xff; /* fall through */
-      case 3: ptr[2] = (use >> 16) & 0xff; /* fall through */
-      case 2: ptr[1] = (use >>  8) & 0xff; /* fall through */
-      case 1: ptr[0] = (use >>  0) & 0xff;    break;
-      default: abort ();
-      }
-   else
-      switch (nbytes)
-      {
-      case 8: *ptr++ = (use >> 56) & 0xff; 
-              *ptr++ = (use >> 48) & 0xff;
-              *ptr++ = (use >> 40) & 0xff;
-              *ptr++ = (use >> 32) & 0xff; /* fall through */              
-      case 4: *ptr++ = (use >> 24) & 0xff; /* fall through */
-      case 3: *ptr++ = (use >> 16) & 0xff; /* fall through */
-      case 2: *ptr++ = (use >>  8) & 0xff; /* fall through */
-      case 1: *ptr++ = (use >>  0) & 0xff;    break;
-      default: abort ();
-      }
+  if (target_big_endian)
+    number_to_chars_bigendian (ptr, use, nbytes);
+  else
+    number_to_chars_littleendian (ptr, use, nbytes);
 }
 
 /* Round up a section size to the appropriate boundary.  */
@@ -2576,6 +2562,17 @@ int
 md_parse_option (int c, char * arg ATTRIBUTE_UNUSED)
 {
    switch (c) {
+#ifdef OPTION_EB
+    case OPTION_EB:
+      target_big_endian = 1;
+      break;
+#endif
+
+#ifdef OPTION_EL
+    case OPTION_EL:
+      target_big_endian = 0;
+      break;
+#endif
    default:
       return 0;
    }
