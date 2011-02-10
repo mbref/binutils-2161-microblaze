@@ -1605,19 +1605,19 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
  */
 static void
 microblaze_adjust_debug_loc (bfd *abfd, asection *text_sec, struct bfd_link_info *link_info,
-    bfd_vma *deleted_addresses, int delete_count)
+    bfd_vma *deleted_addresses, int delete_count ATTRIBUTE_UNUSED)
 {
    asection *debug_loc_sec = bfd_get_section_by_name (abfd, ".debug_loc");
-   bfd_byte *contents, *dloc, *dloc_end;
+   bfd_byte *contents, *dloc, *dloc_end = 0;
    Elf_Internal_Rela *relocs, *irel, *irelend;
    Elf_Internal_Shdr *symtab_hdr;
    Elf_Internal_Sym *isymbuf;
    int symcount;
    unsigned long r_symndx, r_sect;
-   asection *map_sec;
+   asection *map_sec = 0;
    bfd_vma *next_del = deleted_addresses;
    int delete_size = 0;
-   int i;
+   unsigned long saved_r_sect = 0;
 
    if (debug_loc_sec == NULL)
      return; 
@@ -1668,7 +1668,6 @@ microblaze_adjust_debug_loc (bfd *abfd, asection *text_sec, struct bfd_link_info
 
      /* Find first matching relocation entry. */
      for (irel = relocs; irel < relocs + debug_loc_sec->reloc_count; irel++) {
-       unsigned long saved_r_sect = 0;
        r_symndx = ELF32_R_SYM (irel->r_info);
        r_sect = isymbuf[r_symndx].st_shndx;
        if (r_sect != saved_r_sect) {
@@ -1677,7 +1676,10 @@ microblaze_adjust_debug_loc (bfd *abfd, asection *text_sec, struct bfd_link_info
        }
        if (text_sec == map_sec) break;
      }
-     BFD_ASSERT(text_sec == map_sec);
+
+     /* If we didn't find any relocations, skip the rest. */
+     if (text_sec != map_sec) 
+       return;
 
      /* Find starting location list entry. */
      dloc = contents + irel->r_offset;
