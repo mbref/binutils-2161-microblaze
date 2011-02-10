@@ -543,7 +543,7 @@ strtosigno (name)
 
 /*
 
-@deftypefn Supplemental void psignal (unsigned @var{signo}, char *@var{message})
+@deftypefn Supplemental void psignal (int @var{signo}, const char *@var{message})
 
 Print @var{message} to the standard error, followed by a colon,
 followed by the description of the signal specified by @var{signo},
@@ -556,9 +556,7 @@ followed by a newline.
 #ifndef HAVE_PSIGNAL
 
 void
-psignal (signo, message)
-  unsigned signo;
-  char *message;
+psignal (int signo, const char *message)
 {
   if (signal_names == NULL)
     {
