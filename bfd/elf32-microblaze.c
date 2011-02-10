@@ -1169,7 +1169,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 		    if (i > 0) {
 		      immediate -= i * INST_WORD_SIZE;
 		      irelscan->r_addend -= i * INST_WORD_SIZE;
-		      BFD_ASSERT (immediate == irelscan->r_addend);
+	//	      BFD_ASSERT (immediate == irelscan->r_addend);
        if (dbg) printf("MICROBLAZE_32_PCREL_LO: filename = %s, section = %s, reloc = 0x%8.8x, immediate = 0x%8.8x, r_offset = 0x%8.8x, r_addend = 0x%8.8x\n",
 	   abfd->filename, sec->name, (int) (irelscan-internal_relocs), 
 	   (int) immediate, 
