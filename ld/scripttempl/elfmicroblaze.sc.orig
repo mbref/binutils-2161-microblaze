@@ -182,20 +182,10 @@ SECTIONS
     
     ${RELOCATING+PROVIDE (__bss_end = .);}
 
-  }
-
-  ${RELOCATING+ . = ALIGN(4);}
-
-  .heap : {
     ${RELOCATING+ _heap = .;}
     ${RELOCATING+ _heap_start = .;}
     ${RELOCATING+ . += _HEAP_SIZE;}
     ${RELOCATING+ _heap_end = .;}
-  } 
-
-  ${RELOCATING+ . = ALIGN(4);}
-
-  .stack : {
     ${RELOCATING+ _stack_end = .;}
     ${RELOCATING+ . += _STACK_SIZE;}
     ${RELOCATING+ . = ALIGN(8);}
