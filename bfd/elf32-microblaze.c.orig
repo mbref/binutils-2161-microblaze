@@ -638,6 +638,7 @@ microblaze_elf_relocate_section (bfd *output_bfd,
                            + offset + INST_WORD_SIZE);
             /* fall through */
          case (int) R_MICROBLAZE_64 :
+	 case (int) R_MICROBLAZE_64_NONE:
          {
             bfd_vma immediate;
             unsigned short lo, high;
@@ -650,6 +651,7 @@ microblaze_elf_relocate_section (bfd *output_bfd,
             bfd_put_16 ( input_bfd, lo, contents + offset + INST_WORD_SIZE + 2);
             break;
          }
+	 
          default :
             r = _bfd_final_link_relocate (howto, input_bfd, input_section,
                                           contents, offset,
@@ -992,11 +994,8 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 	   case R_MICROBLAZE_64_NONE:
 	     {
 	       /* This was a PC-relative 64-bit instruction that was completely resolved. */
-	       long immediate;
 	       bfd_vma target_address;
-	       immediate = ((long) bfd_get_16 (abfd, contents + irel->r_offset + 2) << 16) & 0xffff0000;
-	       immediate |= (long) bfd_get_16 (abfd, contents + irel->r_offset + INST_WORD_SIZE + 2) & 0x0000ffff;
-	       target_address = immediate + irel->r_offset + INST_WORD_SIZE;
+	       target_address = irel->r_addend + irel->r_offset + INST_WORD_SIZE;
 	       for (i = 0; i <= delete_count; i++) {
 		 if (deleted_addresses[i] >= (irel->r_offset + INST_WORD_SIZE))
 		   break;
@@ -1007,10 +1006,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 	       }
 	       i = j-i;
 	       if (i != 0) {
-		 immediate -= i * INST_WORD_SIZE;
-		 BFD_ASSERT (immediate == (int) irel->r_addend);
-		 bfd_put_16 (abfd, (immediate & 0xffff0000) >> 16, contents + irel->r_offset + 2);
-		 bfd_put_16 (abfd, (immediate & 0x0000ffff), contents + irel->r_offset + INST_WORD_SIZE + 2);
+		 irel->r_addend -= i * INST_WORD_SIZE;
 	       }
 	     }
 	     break;
@@ -1165,7 +1161,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 		    }
 		    if (i > 0) {
 		      immediate -= i * INST_WORD_SIZE;
-		      BFD_ASSERT (immediate != irelscan->r_addend);
+		      BFD_ASSERT (immediate == irelscan->r_addend);
        if (dbg) printf("MICROBLAZE_32_PCREL_LO: filename = %s, section = %s, immediate = 0x%8.8x, r_addend = 0x%8.8x\n",
 	   abfd->filename, sec->name, (int) immediate, (int) irelscan->r_addend);
 		      bfd_put_16 (abfd, immediate, ocontents + irelscan->r_offset + 2);
@@ -1258,7 +1254,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 		    }
 		    if (i > 0) {
 		      immediate -= i * INST_WORD_SIZE;
-		      BFD_ASSERT (immediate != irelscan->r_addend);
+		      BFD_ASSERT (immediate == irelscan->r_addend);
        if (dbg) printf("MICROBLAZE_64_PCREL: filename = %s, section = %s, immediate = 0x%8.8x, r_addend = 0x%8.8x\n",
 	   abfd->filename, sec->name, (int) immediate, (int) irelscan->r_addend);
 		      bfd_put_16 (abfd, ((immediate >> 16) & 0x0000ffff), ocontents + irelscan->r_offset + 2);

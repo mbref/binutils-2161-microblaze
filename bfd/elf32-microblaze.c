@@ -1097,6 +1097,8 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
                            Perhaps, if info->keep_memory is FALSE, we
                            should free them, if we are permitted to. */
                         
+		        if (o->rawsize == 0) 
+			  o->rawsize = o->size;
                         ocontents = (bfd_byte *) bfd_malloc (o->rawsize);
                         if (ocontents == NULL)
                            goto error_return;
@@ -1142,6 +1144,8 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 			       Perhaps, if info->keep_memory is FALSE, we
 			       should free them, if we are permitted to. */
 			    
+		            if (o->rawsize == 0) 
+			      o->rawsize = o->size;
 			    ocontents = (bfd_byte *) bfd_malloc (o->rawsize);
 			    if (ocontents == NULL)
 			      goto error_return;
@@ -1234,6 +1238,8 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 			       Perhaps, if info->keep_memory is FALSE, we
 			       should free them, if we are permitted to. */
 			    
+		            if (o->rawsize == 0) 
+			      o->rawsize = o->size;
 			    ocontents = (bfd_byte *) bfd_malloc (o->rawsize);
 			    if (ocontents == NULL)
 			      goto error_return;
