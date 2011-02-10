@@ -55,7 +55,11 @@ _STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x400;
 
 SECTIONS
 {
-  .vectors : { KEEP (*(.vectors.*)) } =0
+  .vectors.reset 0x0 : { KEEP (*(.vectors.reset)) } = 0
+  .vectors.sw_exception 0x8 : { KEEP (*(.vectors.sw_exception)) } = 0
+  .vectors.interrupt 0x10 : { KEEP (*(.vectors.interrupt)) } = 0
+  .vectors.debug_sw_break 0x18 : { KEEP (*(.vectors.debug_sw_break)) } = 0
+  .vectors.hw_exception 0x20 : { KEEP (*(.vectors.hw_exception)) } = 0
 
   ${RELOCATING+. = _TEXT_START_ADDR;}
 
