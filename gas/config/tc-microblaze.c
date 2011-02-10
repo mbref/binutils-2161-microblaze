@@ -1381,7 +1381,7 @@ md_assemble (char * str)
       output = frag_more (isize);
       break;
       
-   case INST_TYPE_RD_IMM7: 
+   case INST_TYPE_RD_RFSL: 
       if (strcmp(op_end, ""))
          op_end = parse_reg(op_end + 1, &reg1);  /* get rd */
       else {
@@ -1400,7 +1400,7 @@ md_assemble (char * str)
          as_bad(_("Cannot use special register with this instruction"));
       
       inst |= (reg1 << RD_LOW) & RD_MASK;
-      inst |= (imm << IMM_LOW) & IMM7_MASK;
+      inst |= (imm << IMM_LOW) & RFSL_MASK;
       output = frag_more (isize);
       break;
 
@@ -1431,7 +1431,7 @@ md_assemble (char * str)
       inst |= (imm << IMM_LOW) & IMM15_MASK;
       break;
       
-   case INST_TYPE_R1_IMM7:
+   case INST_TYPE_R1_RFSL:
       if (strcmp(op_end, ""))
          op_end = parse_reg(op_end + 1, &reg1);  /* get r1 */
       else {
@@ -1450,10 +1450,10 @@ md_assemble (char * str)
          as_bad(_("Cannot use special register with this instruction"));
       
       inst |= (reg1 << RA_LOW) & RA_MASK;
-      inst |= (imm << IMM_LOW) & IMM7_MASK;
+      inst |= (imm << IMM_LOW) & RFSL_MASK;
       output = frag_more (isize);
       break;
-   case INST_TYPE_IMM7:
+   case INST_TYPE_RFSL:
      if (strcmp(op_end, ""))
          op_end = parse_reg(op_end + 1, &imm);  /* get rfslN */
      else {
@@ -1463,7 +1463,7 @@ md_assemble (char * str)
      // Check for spl registers
      if (check_spl_reg(&reg1))
          as_bad(_("Cannot use special register with this instruction"));
-     inst |= (imm << IMM_LOW) & IMM7_MASK;
+     inst |= (imm << IMM_LOW) & RFSL_MASK;
      output = frag_more (isize);
      break;
    case INST_TYPE_R1:

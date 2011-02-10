@@ -121,8 +121,8 @@ enum microblaze_instr_type {
 #define IMM5_MASK 0x0000001F
 
 
-// imm mask for get, put instructions
-#define  IMM7_MASK 0x00000FFF
+// FSL imm mask for get, put instructions
+#define  RFSL_MASK 0x000000F
 
 // imm mask for msrset, msrclr instructions
 #define  IMM15_MASK 0x00003FFF
