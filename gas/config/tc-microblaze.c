@@ -918,6 +918,36 @@ parse_reg (char * s, unsigned * reg)
       *reg = REG_BTR;
       return s + 4;
    }
+   else if (strncasecmp (s, "redr", 4) == 0) {
+       *reg = REG_EDR;
+       return s + 4;
+   }
+   // MMU registers start
+   else if (strncasecmp (s, "rpid", 4) == 0) {
+      *reg = REG_PID;
+      return s + 4;
+   }
+   else if (strncasecmp (s, "rzpr", 4) == 0) {
+      *reg = REG_ZPR;
+      return s + 4;
+   }
+   else if (strncasecmp (s, "rtlbx", 5) == 0) {
+      *reg = REG_TLBX;
+      return s + 5;
+   }
+   else if (strncasecmp (s, "rtlblo", 6) == 0) {
+      *reg = REG_TLBLO;
+      return s + 6;
+   }
+   else if (strncasecmp (s, "rtlbhi", 6) == 0) {
+      *reg = REG_TLBHI;
+      return s + 6;
+   }
+   else if (strncasecmp (s, "rtlbsx", 6) == 0) {
+      *reg = REG_TLBSX;
+      return s + 6;
+   }
+   // MMU registers end
    else if (strncasecmp (s, "rpvr", 4) == 0) {
      if (isdigit(s[4]) && isdigit(s[5]))
        {
@@ -1056,7 +1086,10 @@ check_spl_reg(unsigned * reg)
 {
    if ( (*reg == REG_MSR) || (*reg == REG_PC) ||
         (*reg == REG_EAR) || (*reg == REG_ESR) || 
-        (*reg == REG_FSR) || (*reg == REG_BTR) ||
+        (*reg == REG_FSR) || (*reg == REG_BTR) || (*reg == REG_EDR) ||
+        (*reg == REG_PID)   || (*reg == REG_ZPR)   ||
+        (*reg == REG_TLBX)  || (*reg == REG_TLBLO) ||
+        (*reg == REG_TLBHI) || (*reg == REG_TLBSX) ||
 	(*reg >= REG_PVR+MIN_PVR_REGNUM && *reg <= REG_PVR+MAX_PVR_REGNUM)
 	) 
      return TRUE;
@@ -1358,7 +1391,7 @@ md_assemble (char * str)
       output = frag_more (isize);
       break;
       
-   case INST_TYPE_RD_IMM12: 
+   case INST_TYPE_RD_IMM7: 
       if (strcmp(op_end, ""))
          op_end = parse_reg(op_end + 1, &reg1);  /* get rd */
       else {
@@ -1377,11 +1410,11 @@ md_assemble (char * str)
          as_bad(_("Cannot use special register with this instruction"));
       
       inst |= (reg1 << RD_LOW) & RD_MASK;
-      inst |= (imm << IMM_LOW) & IMM12_MASK;
+      inst |= (imm << IMM_LOW) & IMM7_MASK;
       output = frag_more (isize);
       break;
 
-   case INST_TYPE_RD_IMM14:
+   case INST_TYPE_RD_IMM15:
       if (strcmp(op_end, ""))
          op_end = parse_reg(op_end + 1, &reg1);  /* get rd */
       else {
@@ -1390,7 +1423,7 @@ md_assemble (char * str)
       }
       
       if (strcmp(op_end, ""))
-         op_end = parse_imm (op_end + 1, & exp, MIN_IMM14, MAX_IMM14);
+         op_end = parse_imm (op_end + 1, & exp, MIN_IMM15, MAX_IMM15);
       else 
          as_bad(_("Error in statement syntax"));
 
@@ -1405,10 +1438,10 @@ md_assemble (char * str)
          imm = exp.X_add_number;
       }
       inst |= (reg1 << RD_LOW) & RD_MASK;
-      inst |= (imm << IMM_LOW) & IMM14_MASK;
+      inst |= (imm << IMM_LOW) & IMM15_MASK;
       break;
       
-   case INST_TYPE_R1_IMM12:
+   case INST_TYPE_R1_IMM7:
       if (strcmp(op_end, ""))
          op_end = parse_reg(op_end + 1, &reg1);  /* get r1 */
       else {
@@ -1427,10 +1460,22 @@ md_assemble (char * str)
          as_bad(_("Cannot use special register with this instruction"));
       
       inst |= (reg1 << RA_LOW) & RA_MASK;
-      inst |= (imm << IMM_LOW) & IMM12_MASK;
+      inst |= (imm << IMM_LOW) & IMM7_MASK;
       output = frag_more (isize);
       break;
-      
+   case INST_TYPE_IMM7:
+     if (strcmp(op_end, ""))
+         op_end = parse_reg(op_end + 1, &imm);  /* get rfslN */
+     else {
+         as_bad(_("Error in statement syntax"));
+         imm = 0;
+     }
+     // Check for spl registers
+     if (check_spl_reg(&reg1))
+         as_bad(_("Cannot use special register with this instruction"));
+     inst |= (imm << IMM_LOW) & IMM7_MASK;
+     output = frag_more (isize);
+     break;
    case INST_TYPE_R1:
       if (strcmp(op_end, ""))
          op_end = parse_reg(op_end + 1, &reg1);  /* get r1 */
@@ -1490,6 +1535,18 @@ md_assemble (char * str)
          imm = opcode->immval_mask | REG_FSR_MASK;
       else if (reg2 == REG_BTR)
          imm = opcode->immval_mask | REG_BTR_MASK; 
+      else if (reg2 == REG_EDR)
+         imm = opcode->immval_mask | REG_EDR_MASK;
+      else if (reg2 == REG_PID)
+         imm = opcode->immval_mask | REG_PID_MASK;
+      else if (reg2 == REG_ZPR)
+         imm = opcode->immval_mask | REG_ZPR_MASK;
+      else if (reg2 == REG_TLBX)
+         imm = opcode->immval_mask | REG_TLBX_MASK;
+      else if (reg2 == REG_TLBLO)
+         imm = opcode->immval_mask | REG_TLBLO_MASK;
+      else if (reg2 == REG_TLBHI)
+         imm = opcode->immval_mask | REG_TLBHI_MASK;
       else if (reg2 >= (REG_PVR+MIN_PVR_REGNUM) && reg2 <= (REG_PVR+MAX_PVR_REGNUM)) {
 	imm = opcode->immval_mask | REG_PVR_MASK | reg2; 
       }
@@ -1526,6 +1583,20 @@ md_assemble (char * str)
          imm = opcode->immval_mask | REG_FSR_MASK;      
       else if (reg1 == REG_BTR)
          imm = opcode->immval_mask | REG_BTR_MASK;      
+      else if (reg1 == REG_EDR)
+         imm = opcode->immval_mask | REG_EDR_MASK;
+      else if (reg1 == REG_PID)
+         imm = opcode->immval_mask | REG_PID_MASK;
+      else if (reg1 == REG_ZPR)
+         imm = opcode->immval_mask | REG_ZPR_MASK;
+      else if (reg1 == REG_TLBX)
+         imm = opcode->immval_mask | REG_TLBX_MASK;
+      else if (reg1 == REG_TLBLO)
+         imm = opcode->immval_mask | REG_TLBLO_MASK;
+      else if (reg1 == REG_TLBHI)
+         imm = opcode->immval_mask | REG_TLBHI_MASK;
+      else if (reg1 == REG_TLBSX)
+         imm = opcode->immval_mask | REG_TLBSX_MASK;
       else
          as_bad(_("invalid value for special purpose register"));
       inst |= (reg2 << RA_LOW) & RA_MASK;

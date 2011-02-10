@@ -53,8 +53,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 static char * get_field (long instr, long mask, unsigned short low);
 static char * get_field_imm (long instr);
 static char * get_field_imm5 (long instr);
-static char * get_field_imm12 (long instr);
-static char * get_field_imm14 (long instr);
+static char * get_field_imm7 (long instr);
+static char * get_field_imm15 (long instr);
 static char * get_field_unsigned_imm (long instr);
 char * get_field_special (long instr, struct op_code_struct * op);
 unsigned long read_insn_microblaze (bfd_vma memaddr, 
@@ -105,18 +105,18 @@ get_field_imm5 (long instr)
 }
 
 static char *
-get_field_imm12 (long instr)
+get_field_imm7 (long instr)
 {
   char tmpstr[25];
-  sprintf(tmpstr, "%s%d", fsl_register_prefix, (short)((instr & IMM12_MASK) >> IMM_LOW));
+  sprintf(tmpstr, "%s%d", fsl_register_prefix, (short)((instr & IMM7_MASK) >> IMM_LOW));
   return(strdup(tmpstr));
 }
 
 static char *
-get_field_imm14 (long instr)
+get_field_imm15 (long instr)
 {
   char tmpstr[25];
-  sprintf(tmpstr, "%d", (short)((instr & IMM14_MASK) >> IMM_LOW));
+  sprintf(tmpstr, "%d", (short)((instr & IMM15_MASK) >> IMM_LOW));
   return(strdup(tmpstr));
 }
 
@@ -145,7 +145,7 @@ char *
 get_field_special (long instr, struct op_code_struct * op)
 {
    char tmpstr[25];
-   char spr[5];
+   char spr[6];
 
    switch ( (((instr & IMM_MASK) >> IMM_LOW) ^ op->immval_mask) ) {
 
@@ -167,6 +167,27 @@ get_field_special (long instr, struct op_code_struct * op)
    case REG_BTR_MASK :
       strcpy(spr, "btr");
       break;      
+   case REG_EDR_MASK :
+      strcpy(spr, "edr");
+      break;
+   case REG_PID_MASK :
+      strcpy(spr, "pid");
+      break;
+   case REG_ZPR_MASK :
+      strcpy(spr, "zpr");
+      break;
+   case REG_TLBX_MASK :
+      strcpy(spr, "tlbx");
+      break;
+   case REG_TLBLO_MASK :
+      strcpy(spr, "tlblo");
+      break;
+   case REG_TLBHI_MASK :
+      strcpy(spr, "tlbhi");
+      break;
+   case REG_TLBSX_MASK :
+      strcpy(spr, "tlbsx");
+      break;
    default :
      {
        if ( ((((instr & IMM_MASK) >> IMM_LOW) ^ op->immval_mask) & 0xE000) == REG_PVR_MASK) {
@@ -288,11 +309,11 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
 	case INST_TYPE_RD_R1_IMM5:
 	  fprintf(stream, "\t%s, %s, %s", get_field_rd(inst), get_field_r1(inst), get_field_imm5(inst));
 	  break;
-	case INST_TYPE_RD_IMM12:
-	  fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_imm12(inst));
+	case INST_TYPE_RD_IMM7:
+	  fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_imm7(inst));
 	  break;
-	case INST_TYPE_R1_IMM12:
-	  fprintf(stream, "\t%s, %s", get_field_r1(inst), get_field_imm12(inst));
+	case INST_TYPE_R1_IMM7:
+	  fprintf(stream, "\t%s, %s", get_field_r1(inst), get_field_imm7(inst));
 	  break;
 	case INST_TYPE_RD_SPECIAL:
 	  fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_special(inst, op));
@@ -379,14 +400,16 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
   case INST_TYPE_RD_R1_SPECIAL:
      fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_r2(inst));
      break;
-  case INST_TYPE_RD_IMM14:
-     fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_imm14(inst));
+  case INST_TYPE_RD_IMM15:
+     fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_imm15(inst));
      break;
      /* For tuqula instruction */
   case INST_TYPE_RD:
      fprintf(stream, "\t%s", get_field_rd(inst));
      break;
-     
+  case INST_TYPE_IMM7:
+     fprintf(stream, "\t%s", get_field_imm7(inst));
+     break;
   default:
 	  /* if the disassembler lags the instruction set */
 	  fprintf (stream, "\tundecoded operands, inst is 0x%04x", inst);
