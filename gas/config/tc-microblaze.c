@@ -45,6 +45,7 @@
 #include "../opcodes/microblaze-opcm.h"
 #include <ctype.h>
 #include <string.h>
+#include <dwarf2dbg.h>
 #include "aout/stab_gnu.h"
 
 #ifndef streq
@@ -2487,7 +2488,16 @@ tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
    
    rel->address = fixp->fx_frag->fr_address + fixp->fx_where;
    /* Always pass the addend along!  */
-   rel->addend = fixp->fx_addnumber; 
+   if (fixp->fx_addnumber) {
+     rel->addend = fixp->fx_addnumber; 
+     if (fixp->fx_offset && fixp->fx_offset != fixp->fx_addnumber) {
+       //printf ("warning: fx_addnumber = 0x%8.8x, fx_offset = 0x%8.8x (%s, sec=%s)\n",
+	  // (int) fixp->fx_addnumber, (int) fixp->fx_offset, fixp->fx_file, section->name);
+     }
+   }
+   else {
+     rel->addend = fixp->fx_offset;
+   }
    rel->howto = bfd_reloc_type_lookup (stdoutput, code);
   
    if (rel->howto == NULL)

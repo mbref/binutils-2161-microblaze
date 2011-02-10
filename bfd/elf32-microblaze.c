@@ -892,10 +892,10 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
       
        /* If this is a PC-relative reloc, subtract the instr offset from the symbol value */
        if (ELF32_R_TYPE (irel->r_info) == (int) R_MICROBLAZE_64_PCREL) {
-	 symval = symval - (irel->r_offset
+	 symval = symval + irel->r_addend
+	   		 - (irel->r_offset
 			    + sec->output_section->vma
-			    + sec->output_offset 
-			    + irel->r_addend);
+			    + sec->output_offset);
        } else {
          symval += irel->r_addend;
        }
@@ -1266,8 +1266,9 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
                         break;
 		    }
 		    if (i > 0) {
-		      immediate -= i * INST_WORD_SIZE;
 		      BFD_ASSERT (immediate == irelscan->r_addend);
+		      immediate -= i * INST_WORD_SIZE;
+		      irelscan->r_addend -= i * INST_WORD_SIZE;
        if (dbg) printf("MICROBLAZE_64_PCREL: filename = %s, section = %s, immediate = 0x%8.8x, r_addend = 0x%8.8x\n",
 	   abfd->filename, sec->name, (int) immediate, (int) irelscan->r_addend);
 		      bfd_put_16 (abfd, ((immediate >> 16) & 0x0000ffff), ocontents + irelscan->r_offset + 2);
