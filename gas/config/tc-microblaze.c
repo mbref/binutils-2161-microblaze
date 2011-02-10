@@ -280,8 +280,6 @@ microblaze_s_sdata (int ignore ATTRIBUTE_UNUSED)
 {
 #ifdef OBJ_ELF
    obj_elf_change_section(".sdata", SHT_PROGBITS, SHF_ALLOC+SHF_WRITE, 0, 0, 0, 0);
-   if (sdata_segment == 0)
-      sdata_segment = subseg_new(".sdata", 0);
 #else
    s_data (ignore);
 #endif
@@ -589,13 +587,6 @@ static void
 microblaze_s_comm (int localvar)
 {
 #ifdef OBJ_ELF
-   /*
-     segT current_seg = now_seg;
-     subsegT current_subseg = now_subseg;
-     obj_elf_change_section(".sbss", SHT_NOBITS, SHF_ALLOC+SHF_WRITE, 0, 0, 0, 0);
-     if (sbss_segment == 0)
-     sbss_segment = subseg_new(".sbss", 0);
-   */
    /* The following code is taken from s_lcomm_internal */
    {
       register char *name;
@@ -728,8 +719,6 @@ microblaze_s_rdata (int localvar)
    }
    else /* 1 .sdata2*/ {
       obj_elf_change_section(".sdata2", SHT_PROGBITS, SHF_ALLOC, 0, 0, 0, 0);
-      if (sdata2_segment == 0)
-         sdata2_segment = subseg_new(".sdata2", 0);
    }
 #else
    s_data (ignore);
@@ -2261,6 +2250,11 @@ int
 md_estimate_size_before_relax (register fragS * fragP,
 			       register segT segment_type)
 {
+   sbss_segment = bfd_get_section_by_name (stdoutput, ".sbss");
+   sbss2_segment = bfd_get_section_by_name (stdoutput, ".sbss2");
+   sdata_segment = bfd_get_section_by_name (stdoutput, ".sdata");
+   sdata2_segment = bfd_get_section_by_name (stdoutput, ".sdata2");
+
    switch (fragP->fr_subtype)
    {
    case INST_PC_OFFSET:
