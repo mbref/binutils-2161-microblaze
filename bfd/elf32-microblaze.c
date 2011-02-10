@@ -63,6 +63,8 @@ static bfd_boolean microblaze_elf_is_local_label_name
   PARAMS ((bfd *, const char *));
 static void microblaze_elf_final_sdp 
   PARAMS (( struct bfd_link_info * ));
+static void
+microblaze_adjust_debug_loc (bfd *abfd, bfd_vma *deleted_addresses, int delete_count);
 
 static int ro_small_data_pointer = 0;
 static int rw_small_data_pointer = 0;
@@ -1309,6 +1311,9 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 	   }
        }
 
+     /* Fix location list entries. */
+     microblaze_adjust_debug_loc (abfd, deleted_addresses, delete_count);
+
      /* Physically move the code and change the cooked size */
      for (i = 0, index=deleted_addresses[0]; i < delete_count; i++) {
        memmove (contents + index, 
@@ -1368,6 +1373,97 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
       free(changed_relocs);
    return FALSE;
 }
+
+/* Fix up location list offsets to correct for deleted instructions. 
+   deleted_addresses is a list of delete_count instruction addresses
+   which have been removed from the .text section.  delete_addresses[delete_count+1]
+   must have a sentinal value greater than the highest possible offset.
+ */
+static void
+microblaze_adjust_debug_loc (bfd *abfd, bfd_vma *deleted_addresses, int delete_count)
+{
+   asection *sec = bfd_get_section_by_name (abfd, ".debug_loc");
+   bfd_byte *contents, *dloc;
+   bfd_vma *next_del = deleted_addresses;
+   int delete_size = 0;
+   int i;
+
+   if (sec == NULL)
+     return; 
+
+#if 0
+   printf ("microblaze_adjust_debug_loc (%s, ...)\n", abfd->filename);
+   for (i = 0; i < delete_count; i++)
+   {
+      printf ("deleted_addresses[%d] = 0x%8.8x\n", i, (int) deleted_addresses[i]);
+   }
+   printf("\n");
+#endif
+   
+   if (elf_section_data (sec)->this_hdr.contents != NULL)
+	     contents = elf_section_data (sec)->this_hdr.contents;
+   else 
+   {
+     contents = (bfd_byte *) bfd_malloc (sec->size);
+     BFD_ASSERT (contents != NULL);
+     if (! bfd_get_section_contents (abfd, sec, contents, 0, sec->size))
+     {
+       free (contents);
+       return;   /* Quit silently. */
+     }
+     elf_section_data (sec)->this_hdr.contents = contents;
+   }
+
+   // printf ("location lists:\n");
+   for (dloc = contents; dloc < contents + sec->size;)
+   {
+     bfd_vma soffset, eoffset;
+     int blklen;
+
+     soffset = bfd_get_32 (abfd, dloc);
+     eoffset = bfd_get_32 (abfd, dloc+4);
+     // printf ("%8.8x %8.8x %8.8x\n", (int) (dloc-contents), (int) soffset, (int) eoffset);
+
+     if (soffset == 0 && eoffset == 0) 
+     {
+       /* End of location list. */
+       dloc += 8;
+       // printf("         ======== ========\n");
+       continue;
+     }
+
+     while (soffset > *next_del)
+     {
+       next_del++;
+       delete_size += INST_WORD_SIZE;
+     }
+     soffset -= delete_size;
+
+     while (eoffset > *next_del)
+     {
+       next_del++;
+       delete_size += INST_WORD_SIZE;
+     }
+     eoffset -= delete_size;
+
+     if (delete_size) 
+     {
+       // printf("replaced %8.8x %8.8x\n", (int) soffset, (int) eoffset);
+       bfd_put_32 (abfd, soffset, dloc);
+       bfd_put_32 (abfd, eoffset, dloc+4);
+     }
+
+     blklen = bfd_get_16 (abfd, dloc+8);
+
+     /* Fix up loc list offsets. */
+
+     
+     dloc += (4 + 4 + 2) + blklen;
+   }
+   // printf("\n");
+
+}
+
 
 /* Return the section that should be marked against GC for a given
    relocation.  */
