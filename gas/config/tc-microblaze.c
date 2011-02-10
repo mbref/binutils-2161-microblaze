@@ -2016,6 +2016,14 @@ md_apply_fix3 (fixS *   fixP,
 
    symname = fixP->fx_addsy ? S_GET_NAME (fixP->fx_addsy) : _("<unknown>");
 
+   /* fixP->fx_offset is supposed to be set up correctly for all symbol relocations */
+   if (fixP->fx_addsy == NULL) {
+      if (!fixP->fx_pcrel)
+         fixP->fx_offset = val; /* absolute relocation */
+      else
+         fprintf(stderr, "NULL symbol PC-relative relocation? offset = %08x, val = %08x\n",
+                 fixP->fx_offset, val);
+   }
 
   /* If we aren't adjusting this fixup to be against the section
      symbol, we need to adjust the value.  */
@@ -2113,9 +2121,6 @@ md_apply_fix3 (fixS *   fixP,
          buf[1] |= ((val >> 8) & 0xff);
          buf[0] |= (val & 0xff);
       }
-      if (!fixP->fx_pcrel) {
-         fixP->fx_addnumber = val; 
-      }
       break;
    case BFD_RELOC_MICROBLAZE_32_ROSDA:
    case BFD_RELOC_MICROBLAZE_32_RWSDA:
@@ -2141,9 +2146,6 @@ md_apply_fix3 (fixS *   fixP,
             buf[1] |= ((val >> 8) & 0xff);
             buf[0] |= (val & 0xff);
          }
-         if (!fixP->fx_pcrel) {
-            fixP->fx_addnumber = val; 
-         }
       }
       break;
    case BFD_RELOC_32:
@@ -2165,9 +2167,6 @@ md_apply_fix3 (fixS *   fixP,
             buf[2] |= ((val >> 16) & 0xff);
             buf[1] |= ((val >> 8) & 0xff);
             buf[0] |= (val & 0xff);
-         }
-         if (!fixP->fx_pcrel) {
-            fixP->fx_addnumber = val; 
          }
       }
       break;
@@ -2213,9 +2212,6 @@ md_apply_fix3 (fixS *   fixP,
             buf[5] |= ((val >> 8) & 0xff);
             buf[4] |= (val & 0xff);
          }
-      }
-      if (!fixP->fx_pcrel) {
-         fixP->fx_addnumber = val; 
       }
       break;
       
@@ -2488,16 +2484,7 @@ tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
    
    rel->address = fixp->fx_frag->fr_address + fixp->fx_where;
    /* Always pass the addend along!  */
-   if (fixp->fx_addnumber) {
-     rel->addend = fixp->fx_addnumber; 
-     if (fixp->fx_offset && fixp->fx_offset != fixp->fx_addnumber) {
-       //printf ("warning: fx_addnumber = 0x%8.8x, fx_offset = 0x%8.8x (%s, sec=%s)\n",
-	  // (int) fixp->fx_addnumber, (int) fixp->fx_offset, fixp->fx_file, section->name);
-     }
-   }
-   else {
-     rel->addend = fixp->fx_offset;
-   }
+   rel->addend = fixp->fx_offset;
    rel->howto = bfd_reloc_type_lookup (stdoutput, code);
   
    if (rel->howto == NULL)

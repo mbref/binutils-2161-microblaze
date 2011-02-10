@@ -470,7 +470,7 @@ microblaze_elf_relocate_section (bfd *output_bfd,
 #ifndef USE_REL
          /* This can't be done for USE_REL because it doesn't mean anything
             and elf_link_input_bfd asserts this stays zero.  */
-         rel->r_addend = addend;
+         //rel->r_addend = addend;
 #endif
 
 #ifndef USE_REL
