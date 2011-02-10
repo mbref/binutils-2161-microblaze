@@ -2369,6 +2369,10 @@ md_number_to_chars (char * ptr, valueT use, int nbytes)
    if (! target_big_endian)
       switch (nbytes)
       {
+      case 8: ptr[7] = (use >> 56) & 0xff;
+              ptr[6] = (use >> 48) & 0xff;
+              ptr[5] = (use >> 40) & 0xff;
+              ptr[4] = (use >> 32) & 0xff; /* fall through */
       case 4: ptr[3] = (use >> 24) & 0xff; /* fall through */
       case 3: ptr[2] = (use >> 16) & 0xff; /* fall through */
       case 2: ptr[1] = (use >>  8) & 0xff; /* fall through */
@@ -2378,6 +2382,10 @@ md_number_to_chars (char * ptr, valueT use, int nbytes)
    else
       switch (nbytes)
       {
+      case 8: *ptr++ = (use >> 56) & 0xff; 
+              *ptr++ = (use >> 48) & 0xff;
+              *ptr++ = (use >> 40) & 0xff;
+              *ptr++ = (use >> 32) & 0xff; /* fall through */              
       case 4: *ptr++ = (use >> 24) & 0xff; /* fall through */
       case 3: *ptr++ = (use >> 16) & 0xff; /* fall through */
       case 2: *ptr++ = (use >>  8) & 0xff; /* fall through */
