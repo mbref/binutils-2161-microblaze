@@ -90,6 +90,7 @@ SECTIONS
    ${RELOCATING+ _frodata = . ;}
   .rodata : {
     ${RELOCATING+*(.rodata)}
+    ${RELOCATING+*(.rodata.*)}
     ${RELOCATING+*(.gnu.linkonce.r.*)}
     ${CONSTRUCTING+CONSTRUCTORS}; /* Is this needed? */
   }
