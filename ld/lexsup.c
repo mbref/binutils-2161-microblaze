@@ -1114,9 +1114,7 @@ parse_args (unsigned argc, char **argv)
 	  trace_files = TRUE;
 	  break;
 	case 'T':
-	  ldfile_open_command_file (optarg);
-	  parser_input = input_script;
-	  yyparse ();
+	  user_linker_script = xstrdup (optarg);
 	  break;
 	case OPTION_SECTION_START:
 	  {

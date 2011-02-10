@@ -261,6 +261,7 @@ typedef enum {
 } lang_phase_type;
 
 extern FILE * saved_script_handle;
+extern char * user_linker_script;
 extern bfd_boolean force_make_executable;
 
 /* Non-zero if we are processing a --defsym from the command line.  */

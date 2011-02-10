@@ -110,6 +110,9 @@ ld_config_type config;
 
 sort_type sort_section;
 
+/* Name of user-specified linker script. */
+char * user_linker_script;
+
 static const char *get_sysroot
   (int, char **);
 static char *get_emulation
@@ -370,6 +373,14 @@ main (int argc, char **argv)
   /* This essentially adds another -L directory so this must be done after
      the -L's in argv have been processed.  */
   set_scripts_dir ();
+
+  /* If user has specified a linker script, parse it now. */
+  if (user_linker_script) 
+    {
+       ldfile_open_command_file (user_linker_script);
+       parser_input = input_script;
+       yyparse ();
+    }
 
   /* If we have not already opened and parsed a linker script
      read the emulation's appropriate default script.  */
