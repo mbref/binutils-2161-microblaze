@@ -117,6 +117,7 @@ const char FLT_CHARS[] = "rRsSfFdDxXpP";
 #define LARGE_DEFINED_PC_OFFSET 7
 #define GOT_OFFSET           8
 #define PLT_OFFSET           9
+#define GOTOFF_OFFSET        10
 
 
 /* Initialize the relax table */
@@ -132,6 +133,7 @@ const relax_typeS md_relax_table[] =
    { 0x7fffffff, 0x80000000, INST_WORD_SIZE*2, 0 },    /* 7: LARGE_DEFINED_PC_OFFSET */  
    { 0x7fffffff, 0x80000000, INST_WORD_SIZE*2, 0 },  /* 8: GOT_OFFSET */  
    { 0x7fffffff, 0x80000000, INST_WORD_SIZE*2, 0 },  /* 9: PLT_OFFSET */ 
+   { 0x7fffffff, 0x80000000, INST_WORD_SIZE*2, 0 },  /* 10: GOTOFF_OFFSET */ 
 };
 
 static struct hash_control * opcode_hash_control;	/* Opcode mnemonics */
@@ -860,9 +862,10 @@ parse_exp (char * s, expressionS * e)
    return new;
 }
 
-/* symbol modifiers (@GOT, @PLT) */
+/* symbol modifiers (@GOT, @PLT, @GOTOFF) */
 #define IMM_GOT 1
 #define IMM_PLT 2
+#define IMM_GOTOFF 3
 
 static symbolS *GOT_symbol;
 #define GOT_SYMBOL_NAME "_GLOBAL_OFFSET_TABLE_"
@@ -879,7 +882,10 @@ parse_imm (char * s, expressionS * e, int min, int max)
        break;
 
   if (*atp == '@') {
-    if (strncmp(atp + 1, "GOT", 3) == 0) {
+    if (strncmp(atp + 1, "GOTOFF", 5) == 0) {
+      *atp = 0;
+      e->X_md = IMM_GOTOFF;
+    } else if (strncmp(atp + 1, "GOT", 3) == 0) {
       *atp = 0;
       e->X_md = IMM_GOT;
     } else if (strncmp(atp + 1, "PLT", 3) == 0) {
@@ -917,9 +923,76 @@ parse_imm (char * s, expressionS * e, int min, int max)
   if (atp) {
     *atp = '@'; /* restore back (needed?) */
     if (new >= atp)
-      new += 4; /* sizeof("@GOT" or "@PLT") */
+      new += (e->X_md == IMM_GOTOFF)?7:4; /* sizeof("@GOTOFF", "@GOT" or "@PLT") */
   }
    return new;
+}
+
+static char *check_got(int *got_type, int *got_len)
+{
+  char *new;
+  char *atp;
+  char *past_got;
+  int first, second;
+  char *tmpbuf;
+  
+  /* Find the start of "@GOT" or "@PLT" suffix (if any) */
+  for (atp = input_line_pointer; *atp != '@'; atp++)
+    if (is_end_of_line[(unsigned char) *atp])
+       return NULL;
+
+  if (strncmp(atp + 1, "GOTOFF", 5) == 0) {
+    *got_len = 6;
+    *got_type = IMM_GOTOFF;
+  } else if (strncmp(atp + 1, "GOT", 3) == 0) {
+    *got_len = 3;
+    *got_type = IMM_GOT;
+  } else if (strncmp(atp + 1, "PLT", 3) == 0) {
+    *got_len = 3;
+    *got_type = IMM_PLT;
+  } else {
+    return NULL;
+  }
+
+  if (!GOT_symbol)
+    GOT_symbol = symbol_find_or_make (GOT_SYMBOL_NAME);
+
+  first = atp - input_line_pointer;
+
+  past_got = atp + *got_len + 1;
+  for (new = past_got; !is_end_of_line[(unsigned char) *new++]; )
+    ;
+  second = new - past_got;
+  tmpbuf = xmalloc(first + second + 2); /* one extra byte for ' ' and one for NUL */
+  memcpy (tmpbuf, input_line_pointer, first);
+  tmpbuf[first] = ' '; /* @GOTOFF is replaced with a single space */
+  memcpy (tmpbuf + first + 1, past_got, second);
+  tmpbuf[first + second + 1] = '\0';
+
+  return tmpbuf;
+}
+
+extern void parse_cons_expression_microblaze (expressionS *exp, int size)
+{
+  if (size == 4) {
+    /* Handle @GOTOFF et.al */
+    char *save, *gotfree_copy;
+    int got_len, got_type;
+
+    save = input_line_pointer;
+    gotfree_copy = check_got(&got_type, &got_len);
+    if (gotfree_copy)
+      input_line_pointer = gotfree_copy;
+
+    expression(exp);
+
+    if (gotfree_copy) {
+      exp->X_md = got_type;
+      input_line_pointer = save + (input_line_pointer - gotfree_copy) + got_len;
+      free (gotfree_copy);
+    }
+  } else
+    expression(exp);
 }
 
 /* This is the guts of the machine-dependent assembler.  STR points to a
@@ -943,6 +1016,26 @@ check_spl_reg(unsigned * reg)
      return TRUE;
    
    return FALSE;
+}
+
+/* Here we decide which fixups can be adjusted to make them relative to
+   the beginning of the section instead of the symbol.  Basically we need
+   to make sure that the dynamic relocations are done correctly, so in
+   some cases we force the original symbol to be used.  */
+         
+int
+tc_microblaze_fix_adjustable (struct fix *fixP)
+{
+  if (GOT_symbol && fixP->fx_subsy == GOT_symbol)
+    return 0;
+
+  if (fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64_GOTOFF
+      || fixP->fx_r_type == BFD_RELOC_MICROBLAZE_32_GOTOFF
+      || fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64_GOT
+      || fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64_PLT)
+    return 0;
+
+  return 1;       
 }
 
 void
@@ -1082,6 +1175,8 @@ md_assemble (char * str)
            subtype = GOT_OFFSET;
          } else if (exp.X_md == IMM_PLT) {
            subtype = PLT_OFFSET;
+         } else if (exp.X_md == IMM_GOTOFF) {
+           subtype = GOTOFF_OFFSET;
          } else {
            subtype = opcode->inst_offset_type;
          }
@@ -1899,6 +1994,11 @@ md_convert_frag (bfd * abfd ATTRIBUTE_UNUSED,
       fragP->fr_fix += INST_WORD_SIZE * 2;
       fragP->fr_var = 0;
       break;
+   case GOTOFF_OFFSET:
+      fix_new(fragP, fragP->fr_fix, INST_WORD_SIZE*2, fragP->fr_symbol, fragP->fr_offset, FALSE, BFD_RELOC_MICROBLAZE_64_GOTOFF);	
+      fragP->fr_fix += INST_WORD_SIZE * 2;
+      fragP->fr_var = 0;
+      break;
 
    default:
       abort ();
@@ -2125,6 +2225,7 @@ md_apply_fix3 (fixS *   fixP,
    case BFD_RELOC_MICROBLAZE_64_GOTPC:
    case BFD_RELOC_MICROBLAZE_64_GOT:
    case BFD_RELOC_MICROBLAZE_64_PLT:
+   case BFD_RELOC_MICROBLAZE_64_GOTOFF:
       /* Add an imm instruction.  First save the current instruction */
       for (i=0; i<INST_WORD_SIZE; i++) {
          buf[i+INST_WORD_SIZE] = buf[i];
@@ -2141,17 +2242,21 @@ md_apply_fix3 (fixS *   fixP,
 
       /* We can fixup call to a defined non-global address 
          within the same section only. */
+#if 0
       if (fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64_PLT
           && (fixP->fx_addsy == NULL
               || (S_IS_DEFINED (fixP->fx_addsy)
-                  && !S_IS_EXTERN(fixP->fx_addsy)))
+                  && !S_IS_EXTERN(fixP->fx_addsy)
+                  && !S_IS_WEAK(fixP->fx_addsy)))
           && (S_GET_SEGMENT (fixP->fx_addsy) == segment)) {
+         val -= INST_WORD_SIZE; /* adjust for "imm" instruction */
          inst1 |= ((val & 0xFFFF0000) >> 16) & IMM_MASK;
          buf[6] |= ((val >> 8) & 0xff);
          buf[7] |= (val & 0xff);
          fixP->fx_done = 1;
          fixP->fx_r_type = BFD_RELOC_NONE;
       }
+#endif
 
       buf[0] = INST_BYTE0 (inst1);
       buf[1] = INST_BYTE1 (inst1);
@@ -2289,6 +2394,7 @@ md_estimate_size_before_relax (register fragS * fragP,
    case DEFINED_ABS_SEGMENT:
    case GOT_OFFSET:
    case PLT_OFFSET:
+   case GOTOFF_OFFSET:
       fragP->fr_var = INST_WORD_SIZE*2;
       break;
    case DEFINED_RO_SEGMENT:
@@ -2400,6 +2506,8 @@ tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
    case BFD_RELOC_MICROBLAZE_64_GOTPC:
    case BFD_RELOC_MICROBLAZE_64_GOT:
    case BFD_RELOC_MICROBLAZE_64_PLT:
+   case BFD_RELOC_MICROBLAZE_64_GOTOFF:
+   case BFD_RELOC_MICROBLAZE_32_GOTOFF:
       code = fixp->fx_r_type;
       break;
     
@@ -2485,6 +2593,10 @@ cons_fix_new_microblaze (fragS * frag,
         && (!S_IS_LOCAL(exp->X_op_symbol))
         ) {
       r = BFD_RELOC_MICROBLAZE_32_SYM_OP_SYM;
+   }
+   else if (exp->X_md == IMM_GOTOFF && exp->X_op == O_symbol_rva) {
+      exp->X_op = O_symbol;
+      r = BFD_RELOC_MICROBLAZE_32_GOTOFF;
    }
    else {
       switch (size)

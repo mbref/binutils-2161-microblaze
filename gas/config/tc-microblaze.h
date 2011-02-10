@@ -57,8 +57,23 @@
    relocs for such expressions as -relax in linker can change the value
    of such expressions */
 #define TC_CONS_FIX_NEW cons_fix_new_microblaze
+#define TC_PARSE_CONS_EXPRESSION(EXP, NBYTES) parse_cons_expression_microblaze (EXP, NBYTES)
+extern void parse_cons_expression_microblaze PARAMS ((expressionS *, int));
+
 #define TC_FORCE_RELOCATION_SECTION(FIXP,SEG) 1
 #define UNDEFINED_DIFFERENCE_OK 1
+
+#define TC_FORCE_RELOCATION_LOCAL(FIX)	\
+  (!(FIX)->fx_pcrel			\
+   || (FIX)->fx_plt			\
+   || (FIX)->fx_r_type == BFD_RELOC_MICROBLAZE_64_GOT	\
+   || (FIX)->fx_r_type == BFD_RELOC_MICROBLAZE_64_PLT	\
+   || (FIX)->fx_r_type == BFD_RELOC_MICROBLAZE_64_GOTOFF	\
+   || (FIX)->fx_r_type == BFD_RELOC_MICROBLAZE_32_GOTOFF	\
+   || TC_FORCE_RELOCATION (FIX))
+
+#define tc_fix_adjustable(X)  tc_microblaze_fix_adjustable(X)
+extern int tc_microblaze_fix_adjustable PARAMS ((struct fix *));
 
 extern const struct relax_type md_relax_table[];
 #define TC_GENERIC_RELAX_TABLE md_relax_table
