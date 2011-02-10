@@ -3779,6 +3779,21 @@ value in two words (with an imm instruction).  No relocation is
 done here - only used for relaxing */
   BFD_RELOC_MICROBLAZE_64_NONE,
 
+/* This is a 64 bit reloc that stores the 32 bit pc relative 
+value in two words (with an imm instruction).  The relocation is
+PC-relative GOT offset. */
+  BFD_RELOC_MICROBLAZE_64_GOTPC,
+
+/* This is a 64 bit reloc that stores the 32 bit pc relative 
+value in two words (with an imm instruction).  The relocation is
+GOT offset. */
+  BFD_RELOC_MICROBLAZE_64_GOT,
+
+/* This is a 64 bit reloc that stores the 32 bit pc relative 
+value in two words (with an imm instruction).  The relocation is
+PC-relative offset into PLT. */
+  BFD_RELOC_MICROBLAZE_64_PLT,
+
   BFD_RELOC_UNUSED };
 typedef enum bfd_reloc_code_real bfd_reloc_code_real_type;
 reloc_howto_type *bfd_reloc_type_lookup

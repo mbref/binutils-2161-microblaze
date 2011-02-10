@@ -117,7 +117,5 @@ extern valueT    md_section_align              PARAMS ((segT, valueT));
 /*extern long      md_pcrel_from_section         PARAMS ((fixS *, segT));*/
 extern arelent * tc_gen_reloc                  PARAMS ((asection *, fixS *));
 
-/* No shared lib support, so we don't need to ensure externally
-   visible symbols can be overridden.  */
-#define EXTERN_FORCE_RELOC 0
+#define EXTERN_FORCE_RELOC -1
 #endif /* TC_MICROBLAZE */

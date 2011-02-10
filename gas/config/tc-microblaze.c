@@ -118,6 +118,9 @@ const char FLT_CHARS[] = "rRsSfFdDxXpP";
 #define DEFINED_RO_SEGMENT   5
 #define DEFINED_RW_SEGMENT   6
 #define LARGE_DEFINED_PC_OFFSET 7
+#define GOT_OFFSET           8
+#define PLT_OFFSET           9
+
 
 /* Initialize the relax table */
 const relax_typeS md_relax_table[] = 
@@ -129,7 +132,9 @@ const relax_typeS md_relax_table[] =
    {      32767,   -32768, INST_WORD_SIZE, LARGE_DEFINED_PC_OFFSET }, /* 4: DEFINED_PC_OFFSET */  
    {    1,     1,       0, 0 },                      /* 5: unused */  
    {    1,     1,       0, 0 },                      /* 6: unused */  
-   { 0x7fffffff, 0x80000000, INST_WORD_SIZE*2, 0 }     /* 7: LARGE_DEFINED_PC_OFFSET */  
+   { 0x7fffffff, 0x80000000, INST_WORD_SIZE*2, 0 },    /* 7: LARGE_DEFINED_PC_OFFSET */  
+   { 0x7fffffff, 0x80000000, INST_WORD_SIZE*2, 0 },  /* 8: GOT_OFFSET */  
+   { 0x7fffffff, 0x80000000, INST_WORD_SIZE*2, 0 },  /* 9: PLT_OFFSET */ 
 };
 
 static struct hash_control * opcode_hash_control;	/* Opcode mnemonics */
@@ -1042,11 +1047,45 @@ parse_exp (char * s, expressionS * e)
    return new;
 }
 
+/* symbol modifiers (@GOT, @PLT) */
+#define IMM_GOT 1
+#define IMM_PLT 2
+
+static symbolS *GOT_symbol;
+#define GOT_SYMBOL_NAME "_GLOBAL_OFFSET_TABLE_"
+
 static char *
 parse_imm (char * s, expressionS * e, int min, int max)
 {
    char * new;
+   char *atp;
   
+  /* Find the start of "@GOT" or "@PLT" suffix (if any) */
+  for (atp = s; *atp != '@'; atp++)
+    if (is_end_of_line[(unsigned char) *atp])
+       break;
+
+  if (*atp == '@') {
+    if (strncmp(atp + 1, "GOT", 3) == 0) {
+      *atp = 0;
+      e->X_md = IMM_GOT;
+    } else if (strncmp(atp + 1, "PLT", 3) == 0) {
+      *atp = 0;
+      e->X_md = IMM_PLT;
+    } else {
+      atp = NULL;
+      e->X_md = 0;
+    }
+    *atp = 0;
+  } else {
+    atp = NULL;
+    e->X_md = 0;
+  }
+
+  if (atp && !GOT_symbol) {
+    GOT_symbol = symbol_find_or_make (GOT_SYMBOL_NAME);
+  }
+
    new = parse_exp (s, e);
   
    if (e->X_op == O_absent)
@@ -1062,6 +1101,11 @@ parse_imm (char * s, expressionS * e, int min, int max)
               min, max, (int) e->X_add_number);
    }
 
+  if (atp) {
+    *atp = '@'; /* restore back (needed?) */
+    if (new >= atp)
+      new += 4; /* sizeof("@GOT" or "@PLT") */
+  }
    return new;
 }
 
@@ -1207,13 +1251,13 @@ md_assemble (char * str)
       
       if (exp.X_op != O_constant) {
          char *opc;
+	 relax_substateT subtype;
          if (!strcmp(name, "lmi")) {
             as_bad (_("lmi pseudo instruction should not use a label in imm field"));
          }
          else if (!strcmp(name, "smi")) {
             as_bad (_("smi pseudo instruction should not use a label in imm field"));
          }
-	
 
          if (reg2 == REG_ROSDP)
             opc = str_microblaze_ro_anchor;
@@ -1221,10 +1265,17 @@ md_assemble (char * str)
             opc = str_microblaze_rw_anchor;
          else
             opc = NULL;
+         if (exp.X_md == IMM_GOT) {
+           subtype = GOT_OFFSET;
+         } else if (exp.X_md == IMM_PLT) {
+           subtype = PLT_OFFSET;
+         } else {
+           subtype = opcode->inst_offset_type;
+         }
          output = frag_var(rs_machine_dependent,
                            isize * 2, /* maxm of 2 words */
                            isize,     /* minm of 1 word */
-                           opcode->inst_offset_type, /* PC-relative or not */
+			   subtype, /* PC-relative or not */
                            exp.X_add_symbol,
                            exp.X_add_number,
                            opc);
@@ -1667,10 +1718,18 @@ md_assemble (char * str)
       
       if (exp.X_op != O_constant) {
          char *opc = NULL;
+         relax_substateT subtype;
+         if (exp.X_md == IMM_GOT) {
+           subtype = GOT_OFFSET;
+         } else if (exp.X_md == IMM_PLT) {
+           subtype = PLT_OFFSET;
+         } else {
+           subtype = opcode->inst_offset_type;
+         }
          output = frag_var(rs_machine_dependent,
                            isize * 2, /* maxm of 2 words */
                            isize,     /* minm of 1 word */
-                           opcode->inst_offset_type, /* PC-relative or not */
+			   subtype, /* PC-relative or not */
                            exp.X_add_symbol,
                            exp.X_add_number,
                            opc);
@@ -1721,10 +1780,18 @@ md_assemble (char * str)
       
       if (exp.X_op != O_constant) {
          char *opc = NULL;
+         relax_substateT subtype;
+         if (exp.X_md == IMM_GOT) {
+           subtype = GOT_OFFSET;
+         } else if (exp.X_md == IMM_PLT) {
+           subtype = PLT_OFFSET;
+         } else {
+           subtype = opcode->inst_offset_type;
+         }
          output = frag_var(rs_machine_dependent,
                            isize * 2, /* maxm of 2 words */
                            isize,     /* minm of 1 word */
-                           opcode->inst_offset_type, /* PC-relative or not */
+			   subtype, /* PC-relative or not */
                            exp.X_add_symbol,
                            exp.X_add_number,
                            opc);
@@ -1781,10 +1848,18 @@ md_assemble (char * str)
       
       if (exp.X_op != O_constant) {
          char *opc = NULL;
+         relax_substateT subtype;
+         if (exp.X_md == IMM_GOT) {
+           subtype = GOT_OFFSET;
+         } else if (exp.X_md == IMM_PLT) {
+           subtype = PLT_OFFSET;
+         } else {
+           subtype = opcode->inst_offset_type;
+         }
          output = frag_var(rs_machine_dependent,
                            isize * 2, /* maxm of 2 words */
                            isize,     /* minm of 1 word */
-                           opcode->inst_offset_type, /* PC-relative or not */
+			   subtype, /* PC-relative or not */
                            exp.X_add_symbol,
                            exp.X_add_number,
                            opc);
@@ -1961,6 +2036,8 @@ md_convert_frag (bfd * abfd ATTRIBUTE_UNUSED,
 	         segT sec ATTRIBUTE_UNUSED,
 		 register fragS * fragP)
 {
+   fixS *fixP;
+
    switch (fragP->fr_subtype)
    {
    case UNDEFINED_PC_OFFSET:
@@ -1969,7 +2046,12 @@ md_convert_frag (bfd * abfd ATTRIBUTE_UNUSED,
       fragP->fr_var = 0;
       break;
    case DEFINED_ABS_SEGMENT:
-      fix_new(fragP, fragP->fr_fix, 2*INST_WORD_SIZE, fragP->fr_symbol, fragP->fr_offset, FALSE, BFD_RELOC_64);
+      if (fragP->fr_symbol == GOT_symbol)
+        fix_new(fragP, fragP->fr_fix, INST_WORD_SIZE*2, fragP->fr_symbol, 
+	        fragP->fr_offset, TRUE, BFD_RELOC_MICROBLAZE_64_GOTPC);
+      else
+        fix_new(fragP, fragP->fr_fix, 2*INST_WORD_SIZE, fragP->fr_symbol, 
+	        fragP->fr_offset, FALSE, BFD_RELOC_64);
       fragP->fr_fix += INST_WORD_SIZE * 2;
       fragP->fr_var = 0;
       break;
@@ -1993,6 +2075,18 @@ md_convert_frag (bfd * abfd ATTRIBUTE_UNUSED,
       fragP->fr_fix += INST_WORD_SIZE * 2;
       fragP->fr_var = 0;
       break;
+   case GOT_OFFSET:
+      fix_new(fragP, fragP->fr_fix, INST_WORD_SIZE*2, fragP->fr_symbol, fragP->fr_offset, FALSE, BFD_RELOC_MICROBLAZE_64_GOT);	
+      fragP->fr_fix += INST_WORD_SIZE * 2;
+      fragP->fr_var = 0;
+      break;
+   case PLT_OFFSET:
+      fixP = fix_new(fragP, fragP->fr_fix, INST_WORD_SIZE*2, fragP->fr_symbol, fragP->fr_offset, TRUE, BFD_RELOC_MICROBLAZE_64_PLT);	
+      fixP->fx_plt = 1;
+      fragP->fr_fix += INST_WORD_SIZE * 2;
+      fragP->fr_var = 0;
+      break;
+
    default:
       abort ();
    }
@@ -2022,7 +2116,7 @@ md_apply_fix3 (fixS *   fixP,
          fixP->fx_offset = val; /* absolute relocation */
       else
          fprintf(stderr, "NULL symbol PC-relative relocation? offset = %08x, val = %08x\n",
-                 fixP->fx_offset, val);
+                 (unsigned int) fixP->fx_offset, (unsigned int) val);
    }
 
   /* If we aren't adjusting this fixup to be against the section
@@ -2214,6 +2308,42 @@ md_apply_fix3 (fixS *   fixP,
          }
       }
       break;
+
+   case BFD_RELOC_MICROBLAZE_64_GOTPC:
+   case BFD_RELOC_MICROBLAZE_64_GOT:
+   case BFD_RELOC_MICROBLAZE_64_PLT:
+      /* Add an imm instruction.  First save the current instruction */
+      for (i=0; i<INST_WORD_SIZE; i++) {
+         buf[i+INST_WORD_SIZE] = buf[i];
+      }
+      /* Generate the imm instruction */
+      opcode1 = (struct op_code_struct *) hash_find (opcode_hash_control, "imm");
+      if (opcode1 == NULL)
+      {
+         as_bad (_("unknown opcode \"%s\""), "imm");
+         return;
+      }
+  
+      inst1 = opcode1->bit_sequence;
+
+      /* We can fixup call to a defined non-global address only. */
+      if (fixP->fx_r_type == BFD_RELOC_MICROBLAZE_64_PLT
+          && (fixP->fx_addsy == NULL
+              || (S_IS_DEFINED (fixP->fx_addsy)
+                  && !S_IS_EXTERN(fixP->fx_addsy)))) {
+         inst1 |= ((val & 0xFFFF0000) >> 16) & IMM_MASK;
+         buf[6] |= ((val >> 8) & 0xff);
+         buf[7] |= (val & 0xff);
+         fixP->fx_done = 1;
+         fixP->fx_r_type = BFD_RELOC_NONE;
+      }
+
+      buf[0] = INST_BYTE0 (inst1);
+      buf[1] = INST_BYTE1 (inst1);
+      buf[2] = INST_BYTE2 (inst1);
+      buf[3] = INST_BYTE3 (inst1);
+
+      return;
       
    default:
       break;
@@ -2344,6 +2474,8 @@ md_estimate_size_before_relax (register fragS * fragP,
    case UNDEFINED_PC_OFFSET:
    case LARGE_DEFINED_PC_OFFSET:
    case DEFINED_ABS_SEGMENT:
+   case GOT_OFFSET:
+   case PLT_OFFSET:
       fragP->fr_var = INST_WORD_SIZE*2;
       break;
    case DEFINED_RO_SEGMENT:
@@ -2452,6 +2584,9 @@ tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
    case BFD_RELOC_MICROBLAZE_32_ROSDA:
    case BFD_RELOC_MICROBLAZE_32_RWSDA:
    case BFD_RELOC_MICROBLAZE_32_SYM_OP_SYM:      
+   case BFD_RELOC_MICROBLAZE_64_GOTPC:
+   case BFD_RELOC_MICROBLAZE_64_GOT:
+   case BFD_RELOC_MICROBLAZE_64_PLT:
       code = fixp->fx_r_type;
       break;
     
