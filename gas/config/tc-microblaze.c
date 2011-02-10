@@ -1056,9 +1056,10 @@ parse_imm (char * s, expressionS * e, int min, int max)
    else if ((e->X_op != O_constant && e->X_op != O_symbol) )
       /*	   || (e->X_op == O_symbol   && e->X_add_number != 0 )) */
       as_bad(_("operand must be a constant or a label"));
-   else if ((e->X_op == O_constant) && (e->X_add_number < min || e->X_add_number > max))
+   else if ((e->X_op == O_constant) && ((int) e->X_add_number < min || (int) e->X_add_number > max)) {
       as_bad (_("operand must be absolute in range %d..%d, not %d"),
               min, max, (int) e->X_add_number);
+   }
 
    return new;
 }

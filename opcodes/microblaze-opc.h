@@ -400,14 +400,14 @@ char pvr_register_prefix[] = "rpvr";
 
 
 /* #defines for valid immediate range */
-#define MIN_IMM  0x80000000
-#define MAX_IMM  0x7fffffff 
+#define MIN_IMM  ((int) 0x80000000)
+#define MAX_IMM  ((int) 0x7fffffff)
 
-#define MIN_IMM7  0x000
-#define MAX_IMM7  0x7ff
+#define MIN_IMM7 ((int) 0x000)
+#define MAX_IMM7 ((int) 0x7ff)
 
-#define MIN_IMM15  0x0000
-#define MAX_IMM15  0x1fff
+#define MIN_IMM15 ((int) 0x0000)
+#define MAX_IMM15 ((int) 0x1fff)
 
 #endif /* MICROBLAZE_OPC */
 
