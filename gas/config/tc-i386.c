@@ -192,16 +192,10 @@ const char extra_symbol_chars[] = "*%-(["
 #endif
 	;
 
-#if (defined (TE_I386AIX)				\
-     || ((defined (OBJ_ELF) || defined (OBJ_MAYBE_ELF))	\
-	 && !defined (TE_LINUX)				\
- 	 && !defined (TE_NETWARE)			\
-	 && !defined (TE_FreeBSD)			\
-	 && !defined (TE_NetBSD)))
 /* This array holds the chars that always start a comment.  If the
    pre-processor is disabled, these aren't very useful.  */
-const char comment_chars[] = "#/";
-#define PREFIX_SEPARATOR '\\'
+const char comment_chars[] = "#";
+#define PREFIX_SEPARATOR '/'
 
 /* This array holds the chars that only start a comment at the beginning of
    a line.  If the line seems to have the form '# 123 filename'
@@ -211,16 +205,7 @@ const char comment_chars[] = "#/";
    #NO_APP at the beginning of its output.
    Also note that comments started like this one will always work if
    '/' isn't otherwise defined.  */
-const char line_comment_chars[] = "#";
-
-#else
-/* Putting '/' here makes it impossible to use the divide operator.
-   However, we need it for compatibility with SVR4 systems.  */
-const char comment_chars[] = "#";
-#define PREFIX_SEPARATOR '/'
-
-const char line_comment_chars[] = "/#";
-#endif
+const char line_comment_chars[] = "#/";
 
 const char line_separator_chars[] = ";";
 
