@@ -64,6 +64,7 @@ START_RELOC_NUMBERS (elf_microblaze_reloc_type)
   RELOC_NUMBER (R_MICROBLAZE_GLOB_DAT, 18) /* create GOT entry */
   RELOC_NUMBER (R_MICROBLAZE_GOTOFF_64, 19) /* offset relative to GOT */
   RELOC_NUMBER (R_MICROBLAZE_GOTOFF_32, 20) /* offset relative to GOT */
+  RELOC_NUMBER (R_MICROBLAZE_COPY, 21) /* runtime copy */
    
 #if 0
 #ifndef MICROBLAZE_CYGWIN_VERSION

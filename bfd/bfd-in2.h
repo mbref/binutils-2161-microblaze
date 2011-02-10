@@ -3803,6 +3803,8 @@ relative offset from _GLOBAL_OFFSET_TABLE_. */
 value in a word.  The relocation is relative offset from _GLOBAL_OFFSET_TABLE_. */
   BFD_RELOC_MICROBLAZE_32_GOTOFF,
 
+  BFD_RELOC_MICROBLAZE_COPY,
+
   BFD_RELOC_UNUSED };
 typedef enum bfd_reloc_code_real bfd_reloc_code_real_type;
 reloc_howto_type *bfd_reloc_type_lookup

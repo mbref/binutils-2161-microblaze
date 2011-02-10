@@ -399,6 +399,21 @@ static reloc_howto_type microblaze_elf_howto_raw[] =
           0x0000ffff,		/* dst_mask */
           FALSE), 		/* pcrel_offset */
 
+   /* COPY relocation.  Table-entry not really used */
+   HOWTO (R_MICROBLAZE_COPY,   	/* type */
+          0,			/* rightshift */
+          2,			/* size (0 = byte, 1 = short, 2 = long) */
+          16,			/* bitsize */
+          FALSE,			/* pc_relative */
+          0,			/* bitpos */
+          complain_overflow_dont, /* complain_on_overflow */
+          bfd_elf_generic_reloc,	/* special_function */
+          "R_MICROBLAZE_COPY", 	/* name *//* For compatability with coff/pe port.  */
+          FALSE,			/* partial_inplace */
+          0,			/* src_mask */
+          0x0000ffff,		/* dst_mask */
+          FALSE), 		/* pcrel_offset */
+
 };
 
 #ifndef NUM_ELEM
@@ -453,6 +468,7 @@ bfd_reloc_code_real_type code;
    case BFD_RELOC_MICROBLAZE_64_PLT:       microblaze_reloc = R_MICROBLAZE_PLT_64; break;
    case BFD_RELOC_MICROBLAZE_64_GOTOFF:    microblaze_reloc = R_MICROBLAZE_GOTOFF_64; break;
    case BFD_RELOC_MICROBLAZE_32_GOTOFF:    microblaze_reloc = R_MICROBLAZE_GOTOFF_32; break;
+   case BFD_RELOC_MICROBLAZE_COPY:         microblaze_reloc = R_MICROBLAZE_COPY; break;
   default:
       return (reloc_howto_type *)NULL;
    }
@@ -668,36 +684,13 @@ microblaze_elf_relocate_section (bfd *output_bfd,
          }
          else
          {
-            /* External symbol.  */
-            h = sym_hashes[r_symndx - symtab_hdr->sh_info];
-            while (h->root.type == bfd_link_hash_indirect
-                   || h->root.type == bfd_link_hash_warning)
-               h = (struct elf_link_hash_entry *) h->root.u.i.link;
-            sym_name = h->root.root.string;
-
-            if (h->root.type == bfd_link_hash_defined
-                || h->root.type == bfd_link_hash_defweak)
-            {
-               sec = h->root.u.def.section;
-               if (sec->output_section == NULL)
-                  relocation = 0;
-               else
-                  relocation = (h->root.u.def.value
-                                + sec->output_section->vma
-                                + sec->output_offset);
-            }
-            else if (h->root.type == bfd_link_hash_undefweak)
-               relocation = 0;
-            else
-            {
-	      if (info->shared)
-                 unresolved_reloc = TRUE;
-	      else if (! ((*info->callbacks->undefined_symbol)
-                        (info, h->root.root.string, input_bfd,
-                         input_section, offset, TRUE)))
-                 return FALSE;
-               relocation = 0;
-            }
+            /* External symbol. */
+            bfd_boolean warned ATTRIBUTE_UNUSED;
+      
+            RELOC_FOR_GLOBAL_SYMBOL (info, input_bfd, input_section, rel,
+                                     r_symndx, symtab_hdr, sym_hashes,
+                                     h, sec, relocation,
+                                     unresolved_reloc, warned);
          }
 
          /* Sanity check the address.  */
@@ -2029,7 +2022,18 @@ microblaze_elf_check_relocs (bfd * abfd, struct bfd_link_info * info,
 		}
 	      sreloc->size += sizeof(Elf32_External_Rela);
 
+            } else {
+              if (h != NULL)
+              {
+                h->non_got_ref = 1;
+              }
             }
+          }
+          break;
+        case R_MICROBLAZE_64:
+          if (h != NULL)
+          {
+            h->non_got_ref = 1;
           }
           break;
         }
@@ -2093,6 +2097,120 @@ static bfd_boolean
 microblaze_elf_adjust_dynamic_symbol (struct bfd_link_info *info,
                 struct elf_link_hash_entry *h)
 {
+  asection *sdynbss, *srelbss;
+  unsigned int power_of_two;
+  bfd *dynobj;
+
+  /* If this is a function, put it in the procedure linkage table.  We
+     will fill in the contents of the procedure linkage table later,
+     when we know the address of the .got section.  */
+  if (h->type == STT_FUNC
+      || h->needs_plt)
+    {
+      if (h->plt.refcount <= 0
+	  || SYMBOL_CALLS_LOCAL (info, h)
+	  || (ELF_ST_VISIBILITY (h->other) != STV_DEFAULT
+	      && h->root.type == bfd_link_hash_undefweak))
+	{
+	  /* This case can occur if we saw a PLT reloc in an input
+	     file, but the symbol was never referred to by a dynamic
+	     object, or if all references were garbage collected.  In
+	     such a case, we don't actually need to build a procedure
+	     linkage table, and we can just do a PC32 reloc instead.  */
+	  h->plt.offset = (bfd_vma) -1;
+	  h->needs_plt = 0;
+	}
+
+      return TRUE;
+    }
+  else
+    /* It's possible that we incorrectly decided a .plt reloc was
+       needed for an R_MICROBLAZE_64_PCREL reloc to a non-function sym in
+       check_relocs.  We can't decide accurately between function and
+       non-function syms in check-relocs;  Objects loaded later in
+       the link may change h->type.  So fix it now.  */
+    h->plt.offset = (bfd_vma) -1;
+
+  /* If this is a weak symbol, and there is a real definition, the
+     processor independent code will have arranged for us to see the
+     real definition first, and we can just use the same value.  */
+  if (h->u.weakdef != NULL)
+    {
+      BFD_ASSERT (h->u.weakdef->root.type == bfd_link_hash_defined
+		  || h->u.weakdef->root.type == bfd_link_hash_defweak);
+      h->root.u.def.section = h->u.weakdef->root.u.def.section;
+      h->root.u.def.value = h->u.weakdef->root.u.def.value;
+//      if (ELIMINATE_COPY_RELOCS || info->nocopyreloc)
+//	h->non_got_ref = h->u.weakdef->non_got_ref;
+      return TRUE;
+    }
+
+  /* This is a reference to a symbol defined by a dynamic object which
+     is not a function.  */
+
+  /* If we are creating a shared library, we must presume that the
+     only references to the symbol are via the global offset table.
+     For such cases we need not do anything here; the relocations will
+     be handled correctly by relocate_section.  */
+  if (info->shared)
+    return TRUE;
+
+  /* If there are no references to this symbol that do not use the
+     GOT, we don't need to generate a copy reloc.  */
+  if (!h->non_got_ref)
+    return TRUE;
+
+  /* If -z nocopyreloc was given, we won't generate them either.  */
+  if (info->nocopyreloc)
+    {
+      h->non_got_ref = 0;
+      return TRUE;
+    }
+
+  /* We must allocate the symbol in our .dynbss section, which will
+     become part of the .bss section of the executable.  There will be
+     an entry for this symbol in the .dynsym section.  The dynamic
+     object will contain position independent code, so all references
+     from the dynamic object to this symbol will go through the global
+     offset table.  The dynamic linker will use the .dynsym entry to
+     determine the address it must put in the global offset table, so
+     both the dynamic object and the regular object will refer to the
+     same memory location for the variable.  */
+
+  /* We must generate a R_MICROBLAZE_COPY reloc to tell the dynamic linker
+     to copy the initial value out of the dynamic object and into the
+     runtime process image.  */
+  dynobj = elf_hash_table (info)->dynobj;
+  BFD_ASSERT (dynobj != NULL);
+  sdynbss = bfd_get_section_by_name (dynobj, ".dynbss");
+  srelbss = bfd_get_section_by_name (dynobj, ".rela.bss");
+  BFD_ASSERT (sdynbss != NULL && srelbss != NULL);
+  if ((h->root.u.def.section->flags & SEC_ALLOC) != 0)
+    {
+      srelbss->size += sizeof (Elf32_External_Rela);
+      h->needs_copy = 1;
+    }
+
+  /* We need to figure out the alignment required for this symbol.  I
+     have no idea how ELF linkers handle this.  */
+  power_of_two = bfd_log2 (h->size);
+  if (power_of_two > 3)
+    power_of_two = 3;
+
+  /* Apply the required alignment.  */
+  sdynbss->size = BFD_ALIGN (sdynbss->size, (bfd_size_type) (1 << power_of_two));
+  if (power_of_two > bfd_get_section_alignment (dynobj, sdynbss))
+    {
+      if (! bfd_set_section_alignment (dynobj, sdynbss, power_of_two))
+	return FALSE;
+    }
+
+  /* Define the symbol as being at this point in the section.  */
+  h->root.u.def.section = sdynbss;
+  h->root.u.def.value = sdynbss->size;
+
+  /* Increment the section size to make room for the symbol.  */
+  sdynbss->size += h->size;
   return TRUE;
 }
 
@@ -2518,7 +2636,7 @@ microblaze_elf_finish_dynamic_symbol (output_bfd, info, h, sym)
       bfd_elf32_swap_reloca_out (output_bfd, &rela, loc);
     }
 
-#if 0
+#if 1
   if (h->needs_copy)
     {
       asection *s;

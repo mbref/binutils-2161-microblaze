@@ -1746,6 +1746,7 @@ static const char *const bfd_reloc_code_real_names[] = { "@@uninitialized@@",
   "BFD_RELOC_MICROBLAZE_64_PLT",
   "BFD_RELOC_MICROBLAZE_64_GOTOFF",
   "BFD_RELOC_MICROBLAZE_32_GOTOFF",
+  "BFD_RELOC_MICROBLAZE_32_COPY",
  "@@overflow: BFD_RELOC_UNUSED@@",
 };
 #endif
