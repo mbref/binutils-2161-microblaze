@@ -91,7 +91,7 @@ extern char *demand_copy_string PARAMS ((int *lenP));
    pre-processor is disabled, these aren't very useful.  */
 const char comment_chars[] = "#";
 
-const char line_separator_chars[] = "";
+const char line_separator_chars[] = ";";
 
 /* This array holds the chars that only start a comment at the beginning of
    a line.
