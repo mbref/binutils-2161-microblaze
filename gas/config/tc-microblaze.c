@@ -137,9 +137,8 @@ const relax_typeS md_relax_table[] =
 static struct hash_control * opcode_hash_control;	/* Opcode mnemonics */
 
 /*static int dont_use_small = 0; If 0, assume that data and comm section are small data sections */
-static segT sbss_segment = 0; /* Small bss section */
-static segT sbss2_segment = 0; /* Small bss section */
-static segT sdata_segment = 0; /* Small data section */
+static segT sbss_segment = 0; 	/* Small bss section */
+static segT sdata_segment = 0; 	/* Small data section */
 static segT sdata2_segment = 0; /* Small read-only section */
 static segT rodata_segment = 0; /* read-only section */
 
@@ -2194,8 +2193,6 @@ int
 md_estimate_size_before_relax (register fragS * fragP,
 			       register segT segment_type)
 {
-   sbss_segment = bfd_get_section_by_name (stdoutput, ".sbss");
-   sbss2_segment = bfd_get_section_by_name (stdoutput, ".sbss2");
    sdata_segment = bfd_get_section_by_name (stdoutput, ".sdata");
    sdata2_segment = bfd_get_section_by_name (stdoutput, ".sdata2");
 
@@ -2247,7 +2244,7 @@ md_estimate_size_before_relax (register fragS * fragP,
             fragP->fr_var = INST_WORD_SIZE*2;
          } else if (!strcmp(fragP->fr_opcode, str_microblaze_ro_anchor)) {
             /* It is accessed using the small data read only anchor */
-            if ((S_GET_SEGMENT (fragP->fr_symbol) == sbss2_segment) ||
+            if ((S_GET_SEGMENT (fragP->fr_symbol) == &bfd_com_section) ||
                 (S_GET_SEGMENT (fragP->fr_symbol) == sdata2_segment) ||
                 (! S_IS_DEFINED (fragP->fr_symbol))) {
                fragP->fr_subtype = DEFINED_RO_SEGMENT;
@@ -2261,7 +2258,7 @@ md_estimate_size_before_relax (register fragS * fragP,
                fragP->fr_var = INST_WORD_SIZE;
             }
          } else if (!strcmp(fragP->fr_opcode, str_microblaze_rw_anchor)) { 
-            if ((S_GET_SEGMENT (fragP->fr_symbol) == sbss_segment) ||
+            if ((S_GET_SEGMENT (fragP->fr_symbol) == &bfd_com_section) ||
                 (S_GET_SEGMENT (fragP->fr_symbol) == sdata_segment) ||
                 (! S_IS_DEFINED (fragP->fr_symbol))) {
                /* It is accessed using the small data read write anchor */

@@ -2501,6 +2501,37 @@ microblaze_elf_finish_dynamic_sections (output_bfd, info)
   return TRUE;
 }
 
+/* Hook called by the linker routine which adds symbols from an object
+   file.  We use it to put .comm items in .sbss, and not .bss.  */
+
+static bfd_boolean
+microblaze_elf_add_symbol_hook (bfd *abfd,
+			        struct bfd_link_info *info,
+			        Elf_Internal_Sym *sym,
+			        const char **namep ATTRIBUTE_UNUSED,
+			        flagword *flagsp ATTRIBUTE_UNUSED,
+			        asection **secp,
+			        bfd_vma *valp)
+{
+  if (sym->st_shndx == SHN_COMMON
+      && !info->relocatable
+      && sym->st_size <= elf_gp_size (abfd))
+    {
+      /* Common symbols less than or equal to -G nn bytes are automatically
+	 put into .sbss.  */
+
+      *secp = bfd_make_section_anyway (abfd, ".sbss");
+      if (*secp == NULL
+          || ! bfd_set_section_flags (abfd, *secp, SEC_IS_COMMON))
+        return FALSE;
+
+      *valp = sym->st_size;
+    }
+
+  return TRUE;
+}
+
+
 #define TARGET_BIG_SYM          bfd_elf32_microblaze_vec
 #define TARGET_BIG_NAME		"elf32-microblaze"
 
@@ -2533,5 +2564,7 @@ microblaze_elf_finish_dynamic_sections (output_bfd, info)
 #define elf_backend_finish_dynamic_sections     microblaze_elf_finish_dynamic_sections
 #define elf_backend_finish_dynamic_symbol       microblaze_elf_finish_dynamic_symbol
 #define elf_backend_size_dynamic_sections       microblaze_elf_size_dynamic_sections
+#define elf_backend_add_symbol_hook		microblaze_elf_add_symbol_hook
+
 
 #include "elf32-target.h"
