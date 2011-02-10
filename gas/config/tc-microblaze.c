@@ -902,10 +902,6 @@ parse_imm (char * s, expressionS * e, int min, int max)
     e->X_md = 0;
   }
 
-  if (atp && !GOT_symbol) {
-    GOT_symbol = symbol_find_or_make (GOT_SYMBOL_NAME);
-  }
-
    new = parse_exp (s, e);
   
    if (e->X_op == O_absent)
@@ -954,9 +950,6 @@ static char *check_got(int *got_type, int *got_len)
   } else {
     return NULL;
   }
-
-  if (!GOT_symbol)
-    GOT_symbol = symbol_find_or_make (GOT_SYMBOL_NAME);
 
   first = atp - input_line_pointer;
 
@@ -1829,6 +1822,23 @@ md_assemble (char * str)
 symbolS *
 md_undefined_symbol (char * name ATTRIBUTE_UNUSED)
 {
+#ifdef OBJ_ELF
+  if (name[0] == '_' && name[1] == 'G'
+      && streq (name, GOT_SYMBOL_NAME))
+    {
+      if (!GOT_symbol)
+	{
+	  if (symbol_find (name))
+	    as_bad ("GOT already in the symbol table");
+
+          GOT_symbol = symbol_new (name, undefined_section, 
+                                   (valueT) 0, &zero_address_frag);
+	}
+
+      return GOT_symbol;
+    }
+#endif
+
    return 0;
 }
 
