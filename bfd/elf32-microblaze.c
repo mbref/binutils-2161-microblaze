@@ -1389,7 +1389,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 	 bfd_vma nraddr;
          /* Get the new reloc address.  */
 	 nraddr = irel->r_offset;
-	 for (i = 0; i <= delete_count; i++) {
+	 for (i = 0; i < delete_count; i++) {
 	   if (deleted_addresses[i] >= nraddr)
 	     break;
          }
@@ -1428,7 +1428,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 		 /* Only handle relocs against .text */
 		 if (isym->st_shndx == shndx &&
 		     ELF32_ST_TYPE (isym->st_info) == STT_SECTION) {
-		   for (i = 0; i <= delete_count; i++) {
+		   for (i = 0; i < delete_count; i++) {
                      if (deleted_addresses[i] >= irel->r_addend)
 		       break;
 		   }
@@ -1443,11 +1443,11 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 	       /* This was a PC-relative instruction that was completely resolved. */
 	       bfd_vma target_address;
 	       target_address = irel->r_addend + irel->r_offset;
-	       for (i = 0; i <= delete_count; i++) {
+	       for (i = 0; i < delete_count; i++) {
 		 if (deleted_addresses[i] >= irel->r_offset)
 		   break;
 	       }
-	       for (j = 0; j <= delete_count; j++) {
+	       for (j = 0; j < delete_count; j++) {
 		 if (deleted_addresses[j] >= target_address)
 		   break;
 	       }
@@ -1464,11 +1464,11 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 	       /* This was a PC-relative 64-bit instruction that was completely resolved. */
 	       bfd_vma target_address;
 	       target_address = irel->r_addend + irel->r_offset + INST_WORD_SIZE;
-	       for (i = 0; i <= delete_count; i++) {
+	       for (i = 0; i < delete_count; i++) {
 		 if (deleted_addresses[i] >= (irel->r_offset + INST_WORD_SIZE))
 		   break;
 	       }
-	       for (j = 0; j <= delete_count; j++) {
+	       for (j = 0; j < delete_count; j++) {
 		 if (deleted_addresses[j] >= target_address)
 		   break;
 	       }
@@ -1537,7 +1537,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
                      }
                   }
                   
-                  for (i = 0; i <= delete_count; i++) {
+                  for (i = 0; i < delete_count; i++) {
                      if (deleted_addresses[i] >= irelscan->r_addend)
                         break;
                   }
@@ -1578,7 +1578,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
                      }
                   }
                   
-                  for (i = 0; i <= delete_count; i++) {
+                  for (i = 0; i < delete_count; i++) {
                      if (deleted_addresses[i] >= (irelscan->r_addend + isym->st_value))
                         break;
                      else if (deleted_addresses[i] >= isym->st_value) 
@@ -1627,7 +1627,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 		    
 		    immediate = (unsigned short) bfd_get_16 (abfd, ocontents + irelscan->r_offset + 2);
 		    target_address = immediate;
-		    for (i = 0; i <= delete_count; i++) {
+		    for (i = 0; i < delete_count; i++) {
 		      if (deleted_addresses[i] >= target_address)
                         break;
 		    }
@@ -1678,7 +1678,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 		  immediate = (unsigned short) (bfd_get_16 (abfd, ocontents + irelscan->r_offset + 2) << 16) & 0xffff0000;
 		  immediate += (unsigned short) (bfd_get_16 (abfd, ocontents + irelscan->r_offset + INST_WORD_SIZE + 2)) & 0x0000ffff;
 
-                  for (i = 0; i <= delete_count; i++) {
+                  for (i = 0; i < delete_count; i++) {
                      if (deleted_addresses[i] >= irelscan->r_addend)
                         break;
                   }
@@ -1726,7 +1726,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 		    immediate = (unsigned short) (bfd_get_16 (abfd, ocontents + irelscan->r_offset + 2) << 16) & 0xffff0000;
 		    immediate += (unsigned short) (bfd_get_16 (abfd, ocontents + irelscan->r_offset + INST_WORD_SIZE + 2)) & 0x0000ffff;
 		    target_address = immediate;
-		    for (i = 0; i <= delete_count; i++) {
+		    for (i = 0; i < delete_count; i++) {
 		      if (deleted_addresses[i] >= target_address)
                         break;
 		    }
@@ -1750,7 +1750,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
      for (isym = isymbuf; isym < isymend; isym++)
        {
          if (isym->st_shndx == shndx) {
-	   for (i = 0; i <= delete_count; i++) {
+	   for (i = 0; i < delete_count; i++) {
 	     if (deleted_addresses[i] >= isym->st_value)
 	       break;
 	   }
@@ -1772,7 +1772,7 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
                  || sym_hash->root.type == bfd_link_hash_defweak)
              && sym_hash->root.u.def.section == sec)
 	   {
-	     for (i = 0; i <= delete_count; i++) {
+	     for (i = 0; i < delete_count; i++) {
                if (deleted_addresses[i] >= sym_hash->root.u.def.value)
 		 break;
 	     }
