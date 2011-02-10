@@ -125,6 +125,6 @@ enum microblaze_instr_type {
 #define  RFSL_MASK 0x000000F
 
 // imm mask for msrset, msrclr instructions
-#define  IMM15_MASK 0x00003FFF
+#define  IMM15_MASK 0x00007FFF
 
 #endif /* MICROBLAZE-OPCM */

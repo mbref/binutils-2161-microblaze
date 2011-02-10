@@ -404,7 +404,7 @@ char pvr_register_prefix[] = "rpvr";
 #define MAX_IMM  ((int) 0x7fffffff)
 
 #define MIN_IMM15 ((int) 0x0000)
-#define MAX_IMM15 ((int) 0x1fff)
+#define MAX_IMM15 ((int) 0x7fff)
 
 #endif /* MICROBLAZE_OPC */
 
